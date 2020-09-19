@@ -77,7 +77,7 @@ namespace BizHawk.Emulation.Cores.Components.ARM
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
 			public byte[] mnemonic = new byte[12];
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6 * 32)]
-			public byte[,] arg = new byte[6, 32];
+			public byte[] arg = new byte[6 * 32];
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
 			public byte[] shift = new byte[12];
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
