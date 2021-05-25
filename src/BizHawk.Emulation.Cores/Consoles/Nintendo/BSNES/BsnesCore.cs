@@ -56,7 +56,10 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 				videoFrameCb = snes_video_refresh,
 				audioSampleCb = snes_audio_sample,
 				pathRequestCb = snes_path_request,
-				snesTraceCb = snes_trace
+				traceCb = snes_trace,
+				readHookCb = ReadHook,
+				writeHookCb = WriteHook,
+				execHookCb = ExecHook
 			};
 
 			Api = new BsnesApi(CoreComm.CoreFileProvider.DllPath(), CoreComm, callbacks.AllDelegatesInMemoryOrder());
@@ -377,6 +380,37 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 				Disassembly = disassembly,
 				RegisterInfo = registerInfo
 			});
+		}
+
+		private void ReadHook(uint addr)
+		{
+			return;
+			if (MemoryCallbacks.HasReads)
+			{
+				MemoryCallbacks.CallMemoryCallbacks(addr, 0, (uint) MemoryCallbackFlags.AccessRead, "System Bus");
+			}
+		}
+
+		private void WriteHook(uint addr, byte value)
+		{
+			return;
+			if (MemoryCallbacks.HasWrites)
+			{
+				MemoryCallbacks.CallMemoryCallbacks(addr, value, (uint) MemoryCallbackFlags.AccessWrite, "System Bus");
+			}
+		}
+
+		private int hasExecutedAmount;
+		private void ExecHook(uint addr)
+		{
+			if (addr != 0x008075) return;
+			// return;
+			if (MemoryCallbacks.HasExecutes && hasExecutedAmount < 1)
+			{
+				Console.WriteLine("got in here actually");
+				hasExecutedAmount++;
+				MemoryCallbacks.CallMemoryCallbacks(addr, 0, (uint) MemoryCallbackFlags.AccessExecute, "System Bus");
+			}
 		}
 	}
 }

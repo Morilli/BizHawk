@@ -23,6 +23,9 @@ struct Program : Emulator::Platform
 	auto notify(string text) -> void override;
 	auto getBackdropColor() -> uint16 override;
 	auto cpuTrace(vector<string>) -> void override;
+	auto readHook(uint address) -> void override;
+	auto writeHook(uint address, uint8 value) -> void override;
+	auto execHook(uint address) -> void override;
 
 	auto load() -> void;
 	auto loadFile(string location) -> vector<uint8_t>;
@@ -441,6 +444,26 @@ auto Program::notify(string message) -> void
 auto Program::cpuTrace(vector<string> parts) -> void
 {
 	snesCallbacks.snes_trace(parts[0], parts[1]);
+}
+
+auto Program::readHook(uint address) -> void
+{
+	// printf("got here with address %d and pointer %p\n", address, snesCallbacks.snes_read_hook);
+	snesCallbacks.snes_read_hook(address);
+}
+
+auto Program::writeHook(uint address, uint8 value) -> void
+{
+	// printf("got here with address %d and pointer %p\n", address, snesCallbacks.snes_write_hook);
+	snesCallbacks.snes_write_hook(address, value);
+}
+
+auto Program::execHook(uint address) -> void
+{
+	// printf("in "); fflush(stdout);
+	// printf("got here with address %d and pointer %p\n", address, snesCallbacks.snes_exec_hook);
+	snesCallbacks.snes_exec_hook(address);
+	// printf("out ");// fflush(stdout);
 }
 
 auto Program::getBackdropColor() -> uint16

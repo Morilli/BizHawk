@@ -113,11 +113,11 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			{
 				Filename = "bsnes.wbx",
 				Path = dllPath,
-				SbrkHeapSizeKB = 14 * 1024,
-				InvisibleHeapSizeKB = 4,
-				MmapHeapSizeKB = 105 * 1024, // TODO: check whether this needs to be larger; it depends on the rom size
-				PlainHeapSizeKB = 0,
-				SealedHeapSizeKB = 0,
+				SbrkHeapSizeKB = 14 * 1024 + 100000,
+				InvisibleHeapSizeKB = 4 + 100000,
+				MmapHeapSizeKB = 105 * 1024 + 100000, // TODO: check whether this needs to be larger; it depends on the rom size
+				PlainHeapSizeKB = 100000,
+				SealedHeapSizeKB = 100000,
 				SkipCoreConsistencyCheck = comm.CorePreferences.HasFlag(CoreComm.CorePreferencesFlags.WaterboxCoreConsistencyCheck),
 				SkipMemoryConsistencyCheck = comm.CorePreferences.HasFlag(CoreComm.CorePreferencesFlags.WaterboxMemoryConsistencyCheck),
 			});
@@ -150,6 +150,9 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 		public delegate void snes_audio_sample_t(short left, short right);
 		public delegate string snes_path_request_t(int slot, string hint, bool required);
 		public delegate void snes_trace_t(string disassembly, string register_info);
+		public delegate void snes_read_hook_t(uint address);
+		public delegate void snes_write_hook_t(uint address, byte value);
+		public delegate void snes_exec_hook_t(uint address);
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct CpuRegisters
@@ -193,7 +196,10 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			public snes_video_frame_t videoFrameCb;
 			public snes_audio_sample_t audioSampleCb;
 			public snes_path_request_t pathRequestCb;
-			public snes_trace_t snesTraceCb;
+			public snes_trace_t traceCb;
+			public snes_read_hook_t readHookCb;
+			public snes_write_hook_t writeHookCb;
+			public snes_exec_hook_t execHookCb;
 
 			private static List<FieldInfo> FieldsInOrder;
 

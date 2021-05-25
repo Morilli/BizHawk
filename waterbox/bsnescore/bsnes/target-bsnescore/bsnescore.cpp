@@ -122,8 +122,11 @@ EXPORT void snes_set_callbacks(SnesCallbacks* callbacks)
     snesCallbacks = SnesCallbacks(*callbacks);
 }
 
+cothread_t active_thread;
+
 EXPORT void snes_init(int entropy, uint left_port, uint right_port, uint16_t merged_bools)// bool hotfixes, bool fast_ppu)
 {
+    active_thread = co_active();
     bool hotfixes = merged_bools >> 8;
     bool fast_ppu = merged_bools & 1;
     fprintf(stderr, "snes_init was called!\n");
@@ -269,6 +272,7 @@ EXPORT void snes_set_trace_enabled(bool enabled)
 
 
 EXPORT int snes_get_region(void) {
+    printf("get region was called. Active cothread is %p with stored one being %p\n", co_active(), active_thread);
     return Region::PAL();
 }
 
@@ -362,23 +366,29 @@ EXPORT void snes_bus_write(unsigned addr, uint8_t value)
     bus.write(addr, value);
 }
 
-EXPORT void snes_get_cpu_registers(SnesRegisters* registers)
+EXPORT void snes_get_cpu_registers()
 {
-    registers->pc = SuperFamicom::cpu.r.pc.d;
-    registers->a = SuperFamicom::cpu.r.a.w;
-    registers->x = SuperFamicom::cpu.r.x.w;
-    registers->y = SuperFamicom::cpu.r.y.w;
-    registers->z = SuperFamicom::cpu.r.z.w;
-    registers->s = SuperFamicom::cpu.r.s.w;
-    registers->d = SuperFamicom::cpu.r.d.w;
+    printf("get cpu registers with active cothread being %p and stored one %p\n", co_active(), active_thread);
+    printf("GOT HERE GET CPU REGISTERS!\n");
+    platform->dumbValue = true;
+    platform->other_thread = co_active();
+    co_switch(active_thread);
+    platform->dumbValue = false;
+    // registers->pc = SuperFamicom::cpu.r.pc.d;
+    // registers->a = SuperFamicom::cpu.r.a.w;
+    // registers->x = SuperFamicom::cpu.r.x.w;
+    // registers->y = SuperFamicom::cpu.r.y.w;
+    // registers->z = SuperFamicom::cpu.r.z.w;
+    // registers->s = SuperFamicom::cpu.r.s.w;
+    // registers->d = SuperFamicom::cpu.r.d.w;
 
-    registers->b = SuperFamicom::cpu.r.b;
-    registers->p = SuperFamicom::cpu.r.p;
-    registers->mdr = SuperFamicom::cpu.r.mdr;
-    registers->e = SuperFamicom::cpu.r.e;
+    // registers->b = SuperFamicom::cpu.r.b;
+    // registers->p = SuperFamicom::cpu.r.p;
+    // registers->mdr = SuperFamicom::cpu.r.mdr;
+    // registers->e = SuperFamicom::cpu.r.e;
 
-    registers->v = SuperFamicom::cpu.vcounter();
-    registers->h = SuperFamicom::cpu.hdot();
+    // registers->v = 1;// SuperFamicom::cpu.vcounter();
+    // registers->h = 2;//SuperFamicom::cpu.hdot();
 }
 
 EXPORT void snes_set_cpu_register(char* _register, uint32_t value)
