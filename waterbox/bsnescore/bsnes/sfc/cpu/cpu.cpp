@@ -37,10 +37,6 @@ auto CPU::main() -> void {
   if(r.stp) return instructionStop();
   if(!status.interruptPending) {
     platform->execHook(cpu.r.pc.d);
-    if (platform->dumbValue) {
-      printf("we actually got here! other_thread: %p\n", platform->other_thread);
-      co_switch(platform->other_thread);
-    }
     // printf("cpu pc before: %u, ", (uint) cpu.r.pc.d);
     // printf("pre in "); fflush(stdout);
     // platform->execHook(cpu.r.pc.d);

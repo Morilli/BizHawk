@@ -458,11 +458,22 @@ auto Program::writeHook(uint address, uint8 value) -> void
 	snesCallbacks.snes_write_hook(address, value);
 }
 
+void CallbackWrapper();
+cothread_t original_thread;
+cothread_t callback_thread;
+uint address_local;
+
 auto Program::execHook(uint address) -> void
 {
+	original_thread = co_active();
+	address_local = address;
+	// co_delete(callback_thread);
+	// printf("got here erxec\n");
+	co_switch(callback_thread);
+	// printf("two got here execs\n");
 	// printf("in "); fflush(stdout);
 	// printf("got here with address %d and pointer %p\n", address, snesCallbacks.snes_exec_hook);
-	snesCallbacks.snes_exec_hook(address);
+	// snesCallbacks.snes_exec_hook(address);
 	// printf("out ");// fflush(stdout);
 }
 

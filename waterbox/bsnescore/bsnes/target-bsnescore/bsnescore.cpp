@@ -122,17 +122,27 @@ EXPORT void snes_set_callbacks(SnesCallbacks* callbacks)
     snesCallbacks = SnesCallbacks(*callbacks);
 }
 
-cothread_t active_thread;
+
+void CallbackWrapper(void)
+{
+    while (true) {
+    // printf("got here\n");
+    // printf("address: %d, thread: %p\n", address_local, original_thread);
+    snesCallbacks.snes_exec_hook(address_local);
+    // printf("returned from the snes_exec_hook call\n");
+    co_switch(original_thread);
+    }
+}
+
 
 EXPORT void snes_init(int entropy, uint left_port, uint right_port, uint16_t merged_bools)// bool hotfixes, bool fast_ppu)
 {
-    active_thread = co_active();
+    callback_thread = co_create(32 * 1024 * sizeof(void*), CallbackWrapper);
     bool hotfixes = merged_bools >> 8;
     bool fast_ppu = merged_bools & 1;
     fprintf(stderr, "snes_init was called!\n");
     emulator = new SuperFamicom::Interface;
     program = new Program;
-    // memset(&cdlInfo,0,sizeof(cdlInfo));
 
     string entropy_string;
     switch (entropy)
@@ -368,12 +378,8 @@ EXPORT void snes_bus_write(unsigned addr, uint8_t value)
 
 EXPORT void snes_get_cpu_registers()
 {
-    printf("get cpu registers with active cothread being %p and stored one %p\n", co_active(), active_thread);
+    // printf("get cpu registers with active cothread being %p and stored one %p\n", co_active(), active_thread);
     printf("GOT HERE GET CPU REGISTERS!\n");
-    platform->dumbValue = true;
-    platform->other_thread = co_active();
-    co_switch(active_thread);
-    platform->dumbValue = false;
     // registers->pc = SuperFamicom::cpu.r.pc.d;
     // registers->a = SuperFamicom::cpu.r.a.w;
     // registers->x = SuperFamicom::cpu.r.x.w;
