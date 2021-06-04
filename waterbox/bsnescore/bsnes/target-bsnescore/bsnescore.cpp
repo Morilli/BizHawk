@@ -147,8 +147,7 @@ EXPORT void snes_init(int entropy, uint left_port, uint right_port, uint16_t mer
     emulator->configure("Hacks/PPU/Fast", fast_ppu);
 
     emulator->configure("Video/BlurEmulation", false); // blurs the video when not using fast ppu. I don't like it so I disable it here :)
-    // needed in order to get audio sync working. should probably figure out what exactly this does or how to change that properly
-    Emulator::audio.setFrequency(SAMPLE_RATE);
+    Emulator::audio.setFrequency(44100); // default is 48000, but bizhawk expects 44100
 }
 
 EXPORT void snes_power(void)
@@ -170,6 +169,7 @@ EXPORT void snes_reset(void)
 // note: run with runahead doesn't work yet, i suspect it's due to the serialize thing breaking (cause of libco)
 EXPORT void snes_run(void)
 {
+    audioBuffer.clear();
     snesCallbacks.snes_input_poll();
 
     // TODO: I currently have implemented separate poll and state calls, where poll updates the state and the state call just receives this
@@ -267,6 +267,12 @@ EXPORT void snes_set_trace_enabled(bool enabled)
     platform->traceEnabled = enabled;
 }
 
+
+EXPORT short* snes_get_audiobuffer_and_size(int& out_size)
+{
+    out_size = audioBuffer.size();
+    return audioBuffer.data();
+}
 
 EXPORT int snes_get_region(void) {
     return Region::PAL();

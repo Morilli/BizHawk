@@ -1,4 +1,7 @@
-﻿using BizHawk.Emulation.Common;
+﻿using System;
+using System.Runtime.InteropServices;
+using BizHawk.Common;
+using BizHawk.Emulation.Common;
 
 namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 {
@@ -8,7 +11,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 
 		public ControllerDefinition ControllerDefinition => _controllers.Definition;
 
-		public bool FrameAdvance(IController controller, bool render, bool renderSound)
+		public unsafe bool FrameAdvance(IController controller, bool render, bool renderSound)
 		{
 			_controller = controller;
 
@@ -55,6 +58,13 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			// run the core for one frame
 			Api.core.snes_run();
 			Frame++;
+			using (Api.exe.EnterExit())
+			{
+				short* rawAudioBuffer = Api.core.snes_get_audiobuffer_and_size(out int size);
+				short[] audioBuffer = new short[size];
+				Marshal.Copy((IntPtr) rawAudioBuffer, audioBuffer, 0, size);
+				_soundProvider.PutSamples(audioBuffer, size / 2);
+			}
 
 			if (IsLagFrame)
 			{
@@ -84,7 +94,6 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			}
 
 			Api.Dispose();
-			_resampler.Dispose();
 
 			_disposed = true;
 		}
