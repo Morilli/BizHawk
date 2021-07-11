@@ -69,8 +69,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			Api.core.snes_init(_syncSettings.Entropy, _syncSettings.LeftPort, _syncSettings.RightPort, mergedBools);
 			Api.SetCallbacks(callbacks);
 
-			// start up audio resampler
-			InitAudio();
+			_soundProvider = new SimpleSyncSoundProvider();
 			ser.Register<ISoundProvider>(_soundProvider);
 
 			if (game.System == "SGB")
@@ -157,7 +156,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 
 		private IController _controller;
 		private readonly LoadParams _currLoadParams;
-		private SimpleSyncSoundProvider _soundProvider;
+		private readonly SimpleSyncSoundProvider _soundProvider;
 		private bool _disposed;
 
 		public bool IsSGB { get; }
@@ -358,11 +357,6 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 					_videoBuffer[di++] = palette[data[si + x / widthMultiplier]];
 				}
 			}
-		}
-
-		private void InitAudio()
-		{
-			_soundProvider = new SimpleSyncSoundProvider();
 		}
 
 		private void snes_trace(string disassembly, string registerInfo)
