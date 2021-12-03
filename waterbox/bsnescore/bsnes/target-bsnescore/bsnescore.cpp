@@ -186,13 +186,12 @@ void snes_hd_scale(int scale)
 
 EXPORT int snes_serialized_size()
 {
-    return emulator->serialize().size();
+    return emulator->serialize(false).size();
 }
 
-// waiting for libco update in order to be able to use this deterministically (no synchronize)
 EXPORT void snes_serialize(uint8_t* data, int size)
 {
-    auto serializer = emulator->serialize();
+    auto serializer = emulator->serialize(false);
     memcpy(data, serializer.data(), size);
 }
 

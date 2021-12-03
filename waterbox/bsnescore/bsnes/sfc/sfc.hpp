@@ -77,8 +77,11 @@ namespace SuperFamicom {
     enum : uint { Size = 4_KiB * sizeof(void*) };
 
     auto create(auto (*entrypoint)() -> void, uint frequency_) -> void {
-      if(thread) co_delete(thread);
-      thread = co_create(Thread::Size, entrypoint);
+      if(!thread) {
+        thread = co_create(Thread::Size, entrypoint);
+      } else {
+        thread = co_derive(thread, Thread::Size, entrypoint);
+      }
       frequency = frequency_;
       clock = 0;
     }
