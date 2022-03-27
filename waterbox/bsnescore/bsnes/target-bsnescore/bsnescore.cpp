@@ -143,6 +143,8 @@ EXPORT void snes_init(SnesInitData* init_data)
     emulator->configure("Hacks/Hotfixes", init_data->hotfixes);
     emulator->configure("Hacks/PPU/Fast", init_data->fast_ppu);
 
+    // emulator->configure("Hacks/DSP/Fast", false); // TODO: Will not setting this potentially cause desyncs as well?
+    emulator->configure("Hacks/Coprocessor/DelayedSync", false);
     emulator->configure("Video/BlurEmulation", false); // blurs the video when not using fast ppu. I don't like it so I disable it here :)
     // needed in order to get audio sync working. should probably figure out what exactly this does or how to change that properly
     Emulator::audio.setFrequency(SAMPLE_RATE);
