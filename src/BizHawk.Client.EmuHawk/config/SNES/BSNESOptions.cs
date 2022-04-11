@@ -44,6 +44,7 @@ namespace BizHawk.Client.EmuHawk
 				UseSGB2 = ss.UseSGB2,
 				UseRealTime = ss.UseRealTime,
 				InitialTime = ss.InitialTime,
+				CoprocessorFrequencies = ss.CoprocessorFrequencies,
 				ShowObj1 = s.ShowOBJ_0,
 				ShowObj2 = s.ShowOBJ_1,
 				ShowObj3 = s.ShowOBJ_2,
@@ -74,6 +75,7 @@ namespace BizHawk.Client.EmuHawk
 			ss.FastDSP = dlg.FastDSP;
 			ss.FastCoprocessors = dlg.FastCoprocessors;
 			ss.UseSGB2 = dlg.UseSGB2;
+			ss.CoprocessorFrequencies = dlg.CoprocessorFrequencies;
 			ss.SatellaviewCartridge = dlg.SatellaviewCartridge;
 			ss.UseRealTime = dlg.UseRealTime;
 			ss.InitialTime = dlg.InitialTime;
@@ -169,6 +171,26 @@ namespace BizHawk.Client.EmuHawk
 		}
 
 		private BsnesApi.ENTROPY Entropy => (BsnesApi.ENTROPY) EntropyBox.SelectedIndex;
+
+		private BsnesApi.Frequencies CoprocessorFrequencies
+		{
+			get => new()
+			{
+				ArmDSP_frequency = (uint)ArmDSPFrequencyValue.ToRawInt()!.Value,
+				HitachiDSP_frequency = (uint)HitachiDSPFrequencyValue.ToRawInt()!.Value,
+				NECDSP_frequency = (uint)NECDSPFrequencyValue.ToRawInt()!.Value,
+				SuperFX_frequency = (uint)SuperFXFrequencyValue.ToRawInt()!.Value,
+			};
+#pragma warning disable BHI1008
+			init
+			{
+				ArmDSPFrequencyValue.SetFromRawInt((int?)value.ArmDSP_frequency);
+				HitachiDSPFrequencyValue.SetFromRawInt((int?)value.HitachiDSP_frequency);
+				NECDSPFrequencyValue.SetFromRawInt((int?)value.NECDSP_frequency);
+				SuperFXFrequencyValue.SetFromRawInt((int?)value.SuperFX_frequency);
+			}
+#pragma warning restore BHI1008
+		}
 
 		private BsnesApi.REGION_OVERRIDE RegionOverride => (BsnesApi.REGION_OVERRIDE)RegionBox.SelectedIndex;
 

@@ -31,7 +31,7 @@ struct Program : Emulator::Platform
 	auto execHook(uint address) -> void override;
 	auto time() -> int64 override;
 
-	auto load() -> void;
+	auto load(Frequencies* frequencies = nullptr) -> void;
 	auto loadSuperFamicom() -> bool;
 	auto loadGameBoy() -> bool;
 	auto loadBSMemory() -> bool;
@@ -274,7 +274,7 @@ auto Program::openFileGameBoy(string name, vfs::file::mode mode, bool required) 
 	return {};
 }
 
-auto Program::load() -> void {
+auto Program::load(Frequencies* frequencies) -> void {
 	emulator->unload();
 	emulator->load();
 
@@ -327,6 +327,14 @@ auto Program::load() -> void {
 
 		//Frisky Tom attract sequence sometimes hangs when WRAM is initialized to pseudo-random patterns
 		if (title == "ニチブツ・アーケード・クラシックス") emulator->configure("Hacks/Entropy", "None");
+	}
+
+	if (frequencies) {
+		fprintf(stderr, "current necdsp frequency: %u, changing to %u\n", necdsp.Frequency, frequencies->NECDSP_frequency);
+		if (cartridge.has.ARMDSP && frequencies->ArmDSP_frequency) armdsp.Frequency = frequencies->ArmDSP_frequency;
+		if (cartridge.has.HitachiDSP && frequencies->HitachiDSP_frequency) hitachidsp.Frequency = frequencies->HitachiDSP_frequency;
+		if (cartridge.has.NECDSP && frequencies->NECDSP_frequency) necdsp.Frequency = frequencies->NECDSP_frequency;
+		if (cartridge.has.SuperFX && frequencies->SuperFX_frequency) superfx.Frequency = frequencies->SuperFX_frequency;
 	}
 
 	emulator->power();

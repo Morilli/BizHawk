@@ -84,7 +84,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 		public abstract int snes_serialized_size();
 
 		[BizImport(CallingConvention.Cdecl)]
-		public abstract void snes_load_cartridge_normal(byte[] romData, int romSize);
+		public abstract void snes_load_cartridge_normal(byte[] romData, int romSize, ref BsnesApi.Frequencies coprocessorFrequencies);
 		[BizImport(CallingConvention.Cdecl)]
 		public abstract void snes_load_cartridge_super_gameboy(byte[] romData, byte[] sgbRomData, int romSize, int sgbRomSize);
 		[BizImport(CallingConvention.Cdecl)]
@@ -165,7 +165,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			{
 				Filename = "bsnes.wbx",
 				Path = dllPath,
-				SbrkHeapSizeKB = 12 * 1024,
+				SbrkHeapSizeKB = 13 * 1024,
 				InvisibleHeapSizeKB = 140 * 1024, // TODO: Roms get saved here and in mmap, consider consolidating?
 				MmapHeapSizeKB = 33 * 1024, // TODO: check whether this needs to be larger; it depends on the rom size
 				PlainHeapSizeKB = 4 * 1024,
@@ -231,6 +231,18 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			V = 64,
 			N = 128,
 		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct Frequencies
+		{
+			public uint ArmDSP_frequency = 21_440_000;
+			public uint HitachiDSP_frequency = 20_000_000;
+			public uint NECDSP_frequency = 7_600_000;
+			public uint SuperFX_frequency = 21_440_000;
+
+			public Frequencies()
+			{ }
+		};
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct LayerEnables

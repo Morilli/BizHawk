@@ -37,6 +37,14 @@ struct SnesInitData {
     int region_override;
 };
 
+struct Frequencies
+{
+    uint32_t ArmDSP_frequency;
+    uint32_t HitachiDSP_frequency;
+    uint32_t NECDSP_frequency;
+    uint32_t SuperFX_frequency;
+};
+
 struct LayerEnables
 {
     bool BG1_Prio0, BG1_Prio1;

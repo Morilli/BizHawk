@@ -119,6 +119,8 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 
 			public bool UseSGB2 { get; set; } = true;
 
+			public BsnesApi.Frequencies CoprocessorFrequencies { get; set; }
+
 			public SATELLAVIEW_CARTRIDGE SatellaviewCartridge { get; set; } = SATELLAVIEW_CARTRIDGE.Autodetect;
 
 			public bool UseRealTime { get; set; } = true;
