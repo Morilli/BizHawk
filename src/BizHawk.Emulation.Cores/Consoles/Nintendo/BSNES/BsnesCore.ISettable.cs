@@ -32,7 +32,8 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 				|| o.FastPPU != _syncSettings.FastPPU
 				|| o.FastDSP != _syncSettings.FastDSP
 				|| o.FastCoprocessors != _syncSettings.FastCoprocessors
-				|| o.UseSGB2 != _syncSettings.UseSGB2;
+				|| o.UseSGB2 != _syncSettings.UseSGB2
+				|| !o.CoprocessorFrequencies.Equals(_syncSettings.CoprocessorFrequencies);
 
 			_syncSettings = o;
 			return ret ? PutSettingsDirtyBits.RebootCore : PutSettingsDirtyBits.None;
@@ -86,6 +87,8 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			public bool FastCoprocessors { get; set; } = true;
 
 			public bool UseSGB2 { get; set; } = true;
+
+			public BsnesApi.Frequencies CoprocessorFrequencies { get; set; }
 
 			public SnesSyncSettings Clone()
 			{

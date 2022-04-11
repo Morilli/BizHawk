@@ -26,6 +26,7 @@ namespace BizHawk.Client.EmuHawk
 				FastDSP = ss.FastDSP,
 				FastCoprocessors = ss.FastCoprocessors,
 				UseSGB2 = ss.UseSGB2,
+				CoprocessorFrequencies = ss.CoprocessorFrequencies,
 				ShowObj1 = s.ShowOBJ_0,
 				ShowObj2 = s.ShowOBJ_1,
 				ShowObj3 = s.ShowOBJ_2,
@@ -52,6 +53,7 @@ namespace BizHawk.Client.EmuHawk
 				ss.FastDSP = dlg.FastDSP;
 				ss.FastCoprocessors = dlg.FastCoprocessors;
 				ss.UseSGB2 = dlg.UseSGB2;
+				ss.CoprocessorFrequencies = dlg.CoprocessorFrequencies;
 				s.ShowOBJ_0 = dlg.ShowObj1;
 				s.ShowOBJ_1 = dlg.ShowObj2;
 				s.ShowOBJ_2 = dlg.ShowObj3;
@@ -122,6 +124,24 @@ namespace BizHawk.Client.EmuHawk
 		{
 			get => (BsnesApi.REGION_OVERRIDE)RegionBox.SelectedIndex;
 			init => RegionBox.SelectedIndex = (int)value;
+		}
+
+		private BsnesApi.Frequencies CoprocessorFrequencies
+		{
+			get => new()
+			{
+				ArmDSP_frequency = (uint)ArmDSPFrequencyValue.ToRawInt()!.Value,
+				HitachiDSP_frequency = (uint)HitachiDSPFrequencyValue.ToRawInt()!.Value,
+				NECDSP_frequency = (uint)NECDSPFrequencyValue.ToRawInt()!.Value,
+				SuperFX_frequency = (uint)SuperFXFrequencyValue.ToRawInt()!.Value,
+			};
+			init
+			{
+				ArmDSPFrequencyValue.SetFromRawInt((int?)value.ArmDSP_frequency);
+				HitachiDSPFrequencyValue.SetFromRawInt((int?)value.HitachiDSP_frequency);
+				NECDSPFrequencyValue.SetFromRawInt((int?)value.NECDSP_frequency);
+				SuperFXFrequencyValue.SetFromRawInt((int?)value.SuperFX_frequency);
+			}
 		}
 
 		private bool ShowObj1 { get => Obj1Checkbox.Checked; init => Obj1Checkbox.Checked = value; }
