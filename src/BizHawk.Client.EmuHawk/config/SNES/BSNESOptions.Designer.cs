@@ -67,6 +67,14 @@
 			this.cbUseRealTime = new System.Windows.Forms.CheckBox();
 			this.dtpInitialTime = new System.Windows.Forms.DateTimePicker();
 			this.lblInitialTime = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.lblArmDSPFrequency = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.lblHitachiDSPFrequency = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.lblNECDSPFrequency = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.lblSuperFXFrequency = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.ArmDSPFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.SuperFXFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.NECDSPFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.HitachiDSPFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
 			this.groupBox1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -106,7 +114,7 @@
 			// groupBox1
 			// 
 			this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-			| System.Windows.Forms.AnchorStyles.Right)));
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.groupBox1.Controls.Add(this.lblPriority1);
 			this.groupBox1.Controls.Add(this.lblPriority0);
 			this.groupBox1.Controls.Add(this.Bg4_0Checkbox);
@@ -420,7 +428,7 @@
 			this.lblDoubleSize.MaximumSize = new System.Drawing.Size(260, 0);
 			this.lblDoubleSize.Name = "lblDoubleSize";
 			this.lblDoubleSize.Text = "Some games are changing the resolution constantly (e.g. SD3) so this option can f" +
-	"orce the SNES output to stay double-size always.";
+    "orce the SNES output to stay double-size always.";
 			// 
 			// cbUseRealTime
 			// 
@@ -450,13 +458,97 @@
 			this.lblInitialTime.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
 			this.lblInitialTime.Text = "Initial Time";
 			// 
+			// lblArmDSPFrequency
+			// 
+			this.lblArmDSPFrequency.Location = new System.Drawing.Point(321, 18);
+			this.lblArmDSPFrequency.Name = "lblArmDSPFrequency";
+			this.lblArmDSPFrequency.Text = "ArmDSP Frequency";
+			// 
+			// lblHitachiDSPFrequency
+			// 
+			this.lblHitachiDSPFrequency.Location = new System.Drawing.Point(321, 64);
+			this.lblHitachiDSPFrequency.Name = "lblHitachiDSPFrequency";
+			this.lblHitachiDSPFrequency.Text = "HitachiDSP Frequency";
+			// 
+			// lblNECDSPFrequency
+			// 
+			this.lblNECDSPFrequency.Location = new System.Drawing.Point(321, 110);
+			this.lblNECDSPFrequency.Name = "lblNECDSPFrequency";
+			this.lblNECDSPFrequency.Text = "NECDSP Frequency";
+			// 
+			// lblSuperFXFrequency
+			// 
+			this.lblSuperFXFrequency.Location = new System.Drawing.Point(321, 157);
+			this.lblSuperFXFrequency.Name = "lblSuperFXFrequency";
+			this.lblSuperFXFrequency.Text = "SuperFX Frequency";
+			// 
+			// ArmDSPFrequencyValue
+			// 
+			this.ArmDSPFrequencyValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.ArmDSPFrequencyValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.ArmDSPFrequencyValue.Location = new System.Drawing.Point(324, 34);
+			this.ArmDSPFrequencyValue.MaxLength = 10;
+			this.ArmDSPFrequencyValue.Name = "ArmDSPFrequencyValue";
+			this.ArmDSPFrequencyValue.Nullable = false;
+			this.ArmDSPFrequencyValue.Size = new System.Drawing.Size(128, 20);
+			this.ArmDSPFrequencyValue.TabIndex = 56;
+			this.ArmDSPFrequencyValue.Text = "21440000";
+			this.ArmDSPFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// SuperFXFrequencyValue
+			// 
+			this.SuperFXFrequencyValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.SuperFXFrequencyValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.SuperFXFrequencyValue.Location = new System.Drawing.Point(324, 173);
+			this.SuperFXFrequencyValue.MaxLength = 10;
+			this.SuperFXFrequencyValue.Name = "SuperFXFrequencyValue";
+			this.SuperFXFrequencyValue.Nullable = false;
+			this.SuperFXFrequencyValue.Size = new System.Drawing.Size(128, 20);
+			this.SuperFXFrequencyValue.TabIndex = 57;
+			this.SuperFXFrequencyValue.Text = "21440000";
+			this.SuperFXFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// NECDSPFrequencyValue
+			// 
+			this.NECDSPFrequencyValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.NECDSPFrequencyValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.NECDSPFrequencyValue.Location = new System.Drawing.Point(324, 126);
+			this.NECDSPFrequencyValue.MaxLength = 10;
+			this.NECDSPFrequencyValue.Name = "NECDSPFrequencyValue";
+			this.NECDSPFrequencyValue.Nullable = false;
+			this.NECDSPFrequencyValue.Size = new System.Drawing.Size(128, 20);
+			this.NECDSPFrequencyValue.TabIndex = 58;
+			this.NECDSPFrequencyValue.Text = "7600000";
+			this.NECDSPFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// HitachiDSPFrequencyValue
+			// 
+			this.HitachiDSPFrequencyValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.HitachiDSPFrequencyValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.HitachiDSPFrequencyValue.Location = new System.Drawing.Point(324, 80);
+			this.HitachiDSPFrequencyValue.MaxLength = 10;
+			this.HitachiDSPFrequencyValue.Name = "HitachiDSPFrequencyValue";
+			this.HitachiDSPFrequencyValue.Nullable = false;
+			this.HitachiDSPFrequencyValue.Size = new System.Drawing.Size(128, 20);
+			this.HitachiDSPFrequencyValue.TabIndex = 59;
+			this.HitachiDSPFrequencyValue.Text = "20000000";
+			this.HitachiDSPFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
 			// BSNESOptions
 			// 
 			this.AcceptButton = this.btnOk;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
-			this.ClientSize = new System.Drawing.Size(304, 470);
+			this.ClientSize = new System.Drawing.Size(492, 470);
+			this.Controls.Add(this.HitachiDSPFrequencyValue);
+			this.Controls.Add(this.NECDSPFrequencyValue);
+			this.Controls.Add(this.SuperFXFrequencyValue);
+			this.Controls.Add(this.ArmDSPFrequencyValue);
+			this.Controls.Add(this.lblSuperFXFrequency);
+			this.Controls.Add(this.lblNECDSPFrequency);
+			this.Controls.Add(this.lblHitachiDSPFrequency);
+			this.Controls.Add(this.lblArmDSPFrequency);
 			this.Controls.Add(this.lblInitialTime);
 			this.Controls.Add(this.SatellaviewCartridgeBox);
 			this.Controls.Add(this.lblSatellaviewCartridge);
@@ -538,5 +630,13 @@
 		private System.Windows.Forms.CheckBox cbUseRealTime;
 		private System.Windows.Forms.DateTimePicker dtpInitialTime;
 		private WinForms.Controls.LocLabelEx lblInitialTime;
+		private WinForms.Controls.LocLabelEx lblArmDSPFrequency;
+		private WinForms.Controls.LocLabelEx lblHitachiDSPFrequency;
+		private WinForms.Controls.LocLabelEx lblNECDSPFrequency;
+		private WinForms.Controls.LocLabelEx lblSuperFXFrequency;
+		private WatchValueBox ArmDSPFrequencyValue;
+		private WatchValueBox SuperFXFrequencyValue;
+		private WatchValueBox NECDSPFrequencyValue;
+		private WatchValueBox HitachiDSPFrequencyValue;
 	}
 }

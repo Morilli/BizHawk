@@ -200,12 +200,12 @@ EXPORT void snes_unserialize(const uint8_t* data, int size)
 }
 
 EXPORT void snes_load_cartridge_normal(
-  const uint8_t* rom_data, int rom_size
+  const uint8_t* rom_data, int rom_size, Frequencies* frequencies
 ) {
     program->superFamicom.raw_data.resize(rom_size);
     memcpy(program->superFamicom.raw_data.data(), rom_data, rom_size);
 
-    program->load();
+    program->load(frequencies);
 }
 
 EXPORT void snes_load_cartridge_super_gameboy(
