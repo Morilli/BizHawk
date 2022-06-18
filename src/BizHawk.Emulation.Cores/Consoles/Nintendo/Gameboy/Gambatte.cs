@@ -51,6 +51,11 @@ namespace BizHawk.Emulation.Cores.Nintendo.Gameboy
 				{
 					case GambatteSyncSettings.ConsoleModeType.GB:
 						break;
+					case GambatteSyncSettings.ConsoleModeType.SGB:
+						flags &= ~(LibGambatte.LoadFlags.CGB_MODE | LibGambatte.LoadFlags.GBA_FLAG);
+						flags |= LibGambatte.LoadFlags.SGB_MODE;
+						IsSgb = true;
+						break;
 					case GambatteSyncSettings.ConsoleModeType.GBC:
 						flags |= LibGambatte.LoadFlags.CGB_MODE;
 						break;
@@ -63,11 +68,9 @@ namespace BizHawk.Emulation.Cores.Nintendo.Gameboy
 						break;
 				}
 
-				if (game.System == VSystemID.Raw.SGB)
+				if (_syncSettings.MulticartCompat)
 				{
-					flags &= ~(LibGambatte.LoadFlags.CGB_MODE | LibGambatte.LoadFlags.GBA_FLAG);
-					flags |= LibGambatte.LoadFlags.SGB_MODE;
-					IsSgb = true;
+					flags |= LibGambatte.LoadFlags.MULTICART_COMPAT;
 				}
 
 				IsCgb = (flags & LibGambatte.LoadFlags.CGB_MODE) == LibGambatte.LoadFlags.CGB_MODE;
