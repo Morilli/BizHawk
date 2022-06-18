@@ -150,7 +150,6 @@ namespace BizHawk.Client.Common.movie.import
 						case "sgb_ntsc":
 						case "sgb_pal":
 							platform = VSystemID.Raw.SNES;
-							Config.GbAsSgb = true;
 							break;
 					}
 
