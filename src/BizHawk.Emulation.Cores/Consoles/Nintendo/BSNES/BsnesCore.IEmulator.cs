@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using BizHawk.Common;
 using BizHawk.Emulation.Common;
@@ -36,6 +37,11 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 				Api.core.snes_run(false);
 				AdvanceRtc();
 				FrameAdvancePost();
+				byte[] saveRam = CloneSaveRam();
+				using (var view = zsnes.CreateViewAccessor())
+				{
+					view.WriteArray(0, saveRam, 0, saveRam.Length);
+				}
 
 				return true;
 			}

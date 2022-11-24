@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using BizHawk.Common;
 using BizHawk.Emulation.Common;
@@ -136,6 +137,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			}
 
 			SetMemoryDomains();
+			zsnes = MemoryMappedFile.CreateOrOpen("ZSNES", _saveRamSize);
 
 			const string TRACE_HEADER = "65816: PC, mnemonic, operands, registers (A, X, Y, S, D, B, flags (NVMXDIZC), V, H)";
 			_tracer = new TraceBuffer(TRACE_HEADER);
@@ -155,6 +157,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 		private readonly string _romPath;
 		private readonly bool _isSGB;
 		private bool _disposed;
+		private MemoryMappedFile zsnes;
 
 		public string BoardName { get; }
 
