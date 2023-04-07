@@ -50,11 +50,11 @@ impl ElfLoader {
 		println!("Mouting `{}` @{:x}", module_name, layout.elf.start);
 		println!("  Sections:");
 
-		let mut sections = Vec::new();	
+		let mut sections = Vec::new();
 
 		for section in wbx.section_headers.iter() {
-			let name = match wbx.shdr_strtab.get(section.sh_name) {
-				Some(Ok(s)) => s,
+			let name = match wbx.shdr_strtab.get_at(section.sh_name) {
+				Some(s) => s,
 				_ => "<anon>"
 			};
 			println!("    @{:x}:{:x} {}{}{} `{}` {} bytes",
@@ -84,8 +84,8 @@ impl ElfLoader {
 		let mut info_area_opt = None;
 
 		for sym in wbx.syms.iter() {
-			let name = match wbx.strtab.get(sym.st_name) {
-				Some(Ok(s)) => s,
+			let name = match wbx.strtab.get_at(sym.st_name) {
+				Some(s) => s,
 				_ => continue
 			};
 			if sym.st_visibility() == STV_DEFAULT && sym.st_bind() == STB_GLOBAL {
@@ -165,7 +165,7 @@ impl ElfLoader {
 				unsafe {
 					let src = std::slice::from_raw_parts(layout as *const WbxSysLayout as *const u8, i.size);
 					b.copy_from_external(src, i.start)?;
-				}		
+				}
 			},
 			// info area can legally be missing if the core calls no emulibc functions
 			// None => return Err(anyhow!("Symbol {} is missing", INFO_OBJECT_NAME))
