@@ -67,11 +67,6 @@ namespace BizHawk.Emulation.Cores.Nintendo.Gameboy
 						break;
 				}
 
-				if (_syncSettings.MulticartCompat)
-				{
-					flags |= LibGambatte.LoadFlags.MULTICART_COMPAT;
-				}
-
 				IsCgb = (flags & LibGambatte.LoadFlags.CGB_MODE) == LibGambatte.LoadFlags.CGB_MODE;
 				if (_syncSettings.EnableBIOS)
 				{
