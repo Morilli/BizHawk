@@ -15,9 +15,8 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 	[ServiceNotApplicable(new[] { typeof(IDriveLight) })]
 	public partial class BsnesCore : IEmulator, IDebuggable, IVideoProvider, ISaveRam, IStatable, IInputPollable, IRegionable, ISettable<BsnesCore.SnesSettings, BsnesCore.SnesSyncSettings>, IBSNESForGfxDebugger, IBoardInfo
 	{
-		[CoreConstructor(VSystemID.Raw.GB)]
-		[CoreConstructor(VSystemID.Raw.GBC)]
 		[CoreConstructor(VSystemID.Raw.Satellaview)]
+		[CoreConstructor(VSystemID.Raw.SGB)]
 		[CoreConstructor(VSystemID.Raw.SNES)]
 		public BsnesCore(CoreLoadParameters<SnesSettings, SnesSyncSettings> loadParameters) : this(loadParameters, false) { }
 		public BsnesCore(CoreLoadParameters<SnesSettings, SnesSyncSettings> loadParameters, bool subframe = false)
@@ -29,11 +28,11 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			CoreComm = loadParameters.Comm;
 			_syncSettings = loadParameters.SyncSettings ?? new SnesSyncSettings();
 			SystemId = loadParameters.Game.System;
-			_isSGB = SystemId == VSystemID.Raw.GB || SystemId == VSystemID.Raw.GBC;
+			_isSGB = SystemId == VSystemID.Raw.SGB;
+
 			byte[] sgbRomData = null;
 			if (_isSGB)
 			{
-				SystemId = VSystemID.Raw.SGB;
 				if ((loadParameters.Roms[0].RomData[0x143] & 0xc0) == 0xc0)
 				{
 					throw new CGBNotSupportedException();
