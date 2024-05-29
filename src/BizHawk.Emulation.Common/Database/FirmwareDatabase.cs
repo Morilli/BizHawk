@@ -39,13 +39,16 @@ namespace BizHawk.Emulation.Common
 				string desc,
 				string additionalInfo = "",
 				bool isBad = false)
-					=> filesByHash[hash] = new(
-						hash: hash,
-						size: size,
-						recommendedName: recommendedName,
-						desc: desc,
-						additionalInfo: additionalInfo,
-						isBad: isBad);
+			{
+				FirmwareFile ff = new(
+					hash: hash,
+					size: size,
+					recommendedName: recommendedName,
+					desc: desc,
+					additionalInfo: additionalInfo,
+					isBad: isBad);
+				return filesByHash[ff.Hash/*may have been reformatted*/] = ff;
+			}
 
 			void Option(string systemId, string id, in FirmwareFile ff, FirmwareOptionStatus status = FirmwareOptionStatus.Acceptable)
 			{
@@ -141,6 +144,7 @@ namespace BizHawk.Emulation.Common
 			FirmwareAndOption("719B9EEF33692406D7170FF526069615759C4DFC", 65536, "NDS", "bios9i", "NDS_Bios9i.bin", "ARM9i BIOS");
 			Firmware("NDS", "firmware", "NDS Firmware");
 			// throwing a ton of hashes from various reported firmwares
+			// TODO: Probably should just add in no-intro hashes
 			var knownhack1 = File("22A7547DBC302BCBFB4005CFB5A2D426D3F85AC6", 262144, "NDS_Firmware [b1].bin", "NDS Firmware", "known hack", true);
 			var knownhack2 = File("AE22DE59FBF3F35CCFBEACAEBA6FA87AC5E7B14B", 262144, "NDS_Firmware [b2].bin", "NDS Firmware", "known hack", true);
 			var knownhack3 = File("1CF9E67C2C703BB9961BBCDD39CD2C7E319A803B", 262144, "NDS_Firmware [b3].bin", "NDS Firmware", "known hack", true);
@@ -158,12 +162,16 @@ namespace BizHawk.Emulation.Common
 			FirmwareAndOption(SHA1Checksum.Dummy, 131072, "NDS", "firmwarei", "DSi_Firmware.bin", "DSi Firmware");
 			// options for each region due to region locking of the DSi
 			// also, the sizes include the "nocash footer" which contains the eMMC CID and CPU/Console ID
-			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND (JPN)", "DSi_Nand_JPN.bin", "DSi NAND (Japan)");
-			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND (EUR)", "DSi_Nand_EUR.bin", "DSi NAND (Europe)");
-			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND (USA)", "DSi_Nand_USA.bin", "DSi NAND (USA)");
-			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND (AUS)", "DSi_Nand_AUS.bin", "DSi NAND (Australia)");
-			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND (CHN)", "DSi_Nand_CHN.bin", "DSi NAND (China)");
-			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND (KOR)", "DSi_Nand_KOR.bin", "DSi NAND (Korea)");
+			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND_JPN", "DSi_Nand_JPN.bin", "DSi NAND (Japan)");
+			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND_EUR", "DSi_Nand_EUR.bin", "DSi NAND (Europe)");
+			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND_USA", "DSi_Nand_USA.bin", "DSi NAND (USA)");
+			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND_AUS", "DSi_Nand_AUS.bin", "DSi NAND (Australia)");
+			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND_CHN", "DSi_Nand_CHN.bin", "DSi NAND (China)");
+			FirmwareAndOption(SHA1Checksum.Dummy, 251658240 + 64, "NDS", "NAND_KOR", "DSi_Nand_KOR.bin", "DSi NAND (Korea)");
+
+			// bleh, undefined hash AND size...
+			FirmwareAndOption(SHA1Checksum.Dummy, 0, "3DS", "aes_keys", "aes_keys.txt", "AES Keys");
+			FirmwareAndOption(SHA1Checksum.Dummy, 0, "3DS", "seeddb", "seeddb.bin", "SEEDDB");
 
 			FirmwareAndOption("E4ED47FAE31693E016B081C6BDA48DA5B70D7CCB", 512, "Lynx", "Boot", "LYNX_boot.img", "Boot Rom");
 
@@ -192,27 +200,21 @@ namespace BizHawk.Emulation.Common
 			FirmwareAndOption("81193965A374D77B99B4743D317824B53C3E3C78", 1024, "ChannelF", "ChannelF_sl131253", "ChannelF_SL31253.rom", "Channel F Rom0");
 			FirmwareAndOption("8F70D1B74483BA3A37E86CF16C849D601A8C3D2C", 1024, "ChannelF", "ChannelF_sl131254", "ChannelF_SL31254.rom", "Channel F Rom1");
 
-			// for saturn, we think any bios region can pretty much run any iso
-			// so, we're going to lay this out carefully so that we choose things in a sensible order, but prefer the correct region
+			// Saturn
 			var ss_100_j = File("2B8CB4F87580683EB4D760E4ED210813D667F0A2", 524288, "SAT_1.00-(J).bin", "Bios v1.00 (J)");
 			var ss_100_ue = File("FAA8EA183A6D7BBE5D4E03BB1332519800D3FBC3", 524288, "SAT_1.00-(U+E).bin", "Bios v1.00 (U+E)");
-			var ss_100a_ue = File("3BB41FEB82838AB9A35601AC666DE5AACFD17A58", 524288, "SAT_1.00a-(U+E).bin", "Bios v1.00a (U+E)"); // ?? is this size correct?
-			var ss_101_j = File("DF94C5B4D47EB3CC404D88B33A8FDA237EAF4720", 524288, "SAT_1.01-(J).bin", "Bios v1.01 (J)"); // ?? is this size correct?
+			var ss_100a_ue = File("3BB41FEB82838AB9A35601AC666DE5AACFD17A58", 524288, "SAT_1.00a-(U+E).bin", "Bios v1.00a (U+E)");
+			var ss_101_j = File("DF94C5B4D47EB3CC404D88B33A8FDA237EAF4720", 524288, "SAT_1.01-(J).bin", "Bios v1.01 (J)");
+			// set mednafen's preferred bios files to ideal (we'll consider other known bios files to be acceptable)
 			Firmware("SAT", "J", "Bios (J)");
 			Option("SAT", "J", in ss_100_j);
-			Option("SAT", "J", in ss_101_j);
-			Option("SAT", "J", in ss_100_ue);
-			Option("SAT", "J", in ss_100a_ue);
+			Option("SAT", "J", in ss_101_j, FirmwareOptionStatus.Ideal);
 			Firmware("SAT", "U", "Bios (U)");
-			Option("SAT", "U", in ss_100_ue);
+			Option("SAT", "U", in ss_100_ue, FirmwareOptionStatus.Ideal);
 			Option("SAT", "U", in ss_100a_ue);
-			Option("SAT", "U", in ss_100_j);
-			Option("SAT", "U", in ss_101_j);
 			Firmware("SAT", "E", "Bios (E)");
-			Option("SAT", "E", in ss_100_ue);
+			Option("SAT", "E", in ss_100_ue, FirmwareOptionStatus.Ideal);
 			Option("SAT", "E", in ss_100a_ue);
-			Option("SAT", "E", in ss_100_j);
-			Option("SAT", "E", in ss_101_j);
 			FirmwareAndOption("A67CD4F550751F8B91DE2B8B74528AB4E0C11C77", 2 * 1024 * 1024, "SAT", "KOF95", "SAT_KoF95.bin", "King of Fighters cartridge");
 			//Firmware("SAT", "ULTRAMAN", "Ultraman cartridge");
 			FirmwareAndOption("56C1B93DA6B660BF393FBF48CA47569000EF4047", 2 * 1024 * 1024, "SAT", "ULTRAMAN", "SAT_Ultraman.bin", "Ultraman cartridge");
@@ -280,6 +282,8 @@ namespace BizHawk.Emulation.Common
 			var jp_mcd_reva = File("062E6A912E3683F7F127CBFD6314B44F93C42DB7", 131072, "MCD_jp_reva.bin", "Mega CD JP (Rev A)");
 			var jp_mcd_beta = File("F30D109D1C2F7C9FEAF38600C65834261DB73D1F", 131072, "MCD_jp_beta.bin", "Mega CD JP (Beta)");
 			var eu_mcd_221 = File("9DE4EDA59F544DB2D5FD7E6514601F7B648D8EB4", 131072, "MCD_eu_221.bin", "Mega CD EU (v2.21)");
+
+			FirmwareAndOption("3F50B76B0529DB7F79C396B5E808CC0786FFC311", 2048, "GEN", "Boot", "GEN_boot.md", "Genesis Boot Rom (World)");
 
 			Firmware("GEN", "CD_BIOS_EU", "Mega CD Bios (Europe)");
 			Firmware("GEN", "CD_BIOS_JP", "Mega CD Bios (Japan)");
@@ -349,6 +353,9 @@ namespace BizHawk.Emulation.Common
 			Option("SMS", "Export", in sms_m404);
 			Option("SMS", "Japan", in sms_jp_21);
 			Option("SMS", "Korea", in sms_kr);
+
+			// GG
+			FirmwareAndOption("914AA165E3D879F060BE77870D345B60CFEB4EDE", 1024, "GG", "Majesco", "GG_majesco.gg", "GG BIOS (USA/Majesco)");
 
 			// PSX
 			// http://forum.fobby.net/index.php?t=msg&goto=2763 [f]
@@ -461,11 +468,13 @@ namespace BizHawk.Emulation.Common
 
 			Firmware("GBC", "World", "Game Boy Color Boot Rom");
 			Option("GBC", "World", File("1293D68BF9643BC4F36954C1E80E38F39864528D", 2304, "cgb.bin", "Game Boy Color Boot Rom"), FirmwareOptionStatus.Ideal);
+			// CGB E models have the logo reading TOCTOU patched (only relevant for bootlegs that logo swap)
+			Option("GBC", "World", File("F5F33729A956131D9C44310F0AE3BB0599E9EC3E", 2304, "cgbE.bin", "Game Boy Color Boot Rom (Late Revision)"));
 			Option("GBC", "World", File("DF5A0D2D49DE38FBD31CC2AAB8E62C8550E655C0", 2304, "cgb0.bin", "Game Boy Color Boot Rom (Early Revision)"), FirmwareOptionStatus.Unacceptable);
 			Firmware("GBC", "AGB", "Game Boy Color Boot Rom (GBA)");
 			Option("GBC", "AGB", File("FA5287E24B0FA533B3B5EF2B28A81245346C1A0F", 2304, "agb.bin", "Game Boy Color Boot Rom (GBA)"), FirmwareOptionStatus.Ideal);
 			// early GBAs did not patch the logo reading TOCTOU (only relevant for bootlegs that logo swap)
-			Option("GBC", "AGB", File("0DAAC31ACB6CB346FC954368ACB02ACB3ADCC3AB", 2304, "agb0.bin", "Game Boy Color Boot Rom (GBA, Early Revision)"), FirmwareOptionStatus.Acceptable);
+			Option("GBC", "AGB", File("0DAAC31ACB6CB346FC954368ACB02ACB3ADCC3AB", 2304, "agb0.bin", "Game Boy Color Boot Rom (GBA, Early Revision)"));
 			// functionally equal to agb0.bin (no TOCTOU patch)
 			Option("GBC", "AGB", File("1ECAFA77AB3172193F3305486A857F443E28EBD9", 2304, "agb_gambatte.bin", "Game Boy Color Boot Rom (GBA, Gambatte RE)"), FirmwareOptionStatus.Bad);
 			AddPatchAndMaybeReverse(new(
@@ -482,15 +491,15 @@ namespace BizHawk.Emulation.Common
 			var fxscsi = File("65482A23AC5C10A6095AEE1DB5824CCA54EAD6E5", 512 * 1024, "PCFX_fx-scsi.rom", "PCFX SCSI ROM");
 			Option("PCFX", "SCSIROM", in fxscsi);
 
-			Firmware("N64DD", "IPL JPN", "N64DD Japan IPL");
+			Firmware("N64DD", "IPL_JPN", "N64DD Japan IPL");
 			var ddv10 = File("58670C0063793A8F3BE957D71D937B618829BA9E", 4 * 1024 * 1024, "64DD_IPL_v10_JPN.bin", "N64DD JPN IPL v1.0 (Beta)");
 			var ddv11 = File("B3E26DBB4E945F78C918FABC5B9E60FCF262C47B", 4 * 1024 * 1024, "64DD_IPL_v11_JPN.bin", "N64DD JPN IPL v1.1 (Beta)");
 			var ddv12 = File("BF861922DCB78C316360E3E742F4F70FF63C9BC3", 4 * 1024 * 1024, "64DD_IPL_v12_JPN.bin", "N64DD JPN IPL v1.2 (Retail)");
-			Option("N64DD", "IPL JPN", in ddv10, FirmwareOptionStatus.Unacceptable);
-			Option("N64DD", "IPL JPN", in ddv11, FirmwareOptionStatus.Unacceptable);
-			Option("N64DD", "IPL JPN", in ddv12, FirmwareOptionStatus.Ideal);
-			FirmwareAndOption("10C4173C2A7EB09C6579818F72EF18FA0B6D32DE", 4 * 1024 * 1024, "N64DD", "IPL DEV", "64DD_IPL_DEV.bin", "N64DD Development IPL");
-			FirmwareAndOption("3C5B93CA231550C68693A14F03CEA8D5DBD1BE9E", 4 * 1024 * 1024, "N64DD", "IPL USA", "64DD_IPL_USA.bin", "N64DD Prototype USA IPL");
+			Option("N64DD", "IPL_JPN", in ddv10, FirmwareOptionStatus.Unacceptable);
+			Option("N64DD", "IPL_JPN", in ddv11, FirmwareOptionStatus.Unacceptable);
+			Option("N64DD", "IPL_JPN", in ddv12, FirmwareOptionStatus.Ideal);
+			FirmwareAndOption("10C4173C2A7EB09C6579818F72EF18FA0B6D32DE", 4 * 1024 * 1024, "N64DD", "IPL_DEV", "64DD_IPL_DEV.bin", "N64DD Development IPL");
+			FirmwareAndOption("3C5B93CA231550C68693A14F03CEA8D5DBD1BE9E", 4 * 1024 * 1024, "N64DD", "IPL_USA", "64DD_IPL_USA.bin", "N64DD Prototype USA IPL");
 
 			/*Firmware("PS2", "BIOS", "PS2 Bios");
 			Option("PS2", "BIOS", File("FBD54BFC020AF34008B317DCB80B812DD29B3759", 4 * 1024 * 1024, "ps2-0230j-20080220.bin", "PS2 Bios"));

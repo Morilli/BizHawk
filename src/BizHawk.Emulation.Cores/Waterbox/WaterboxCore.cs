@@ -1,10 +1,12 @@
-﻿using BizHawk.Common;
-using BizHawk.BizInvoke;
-using BizHawk.Emulation.Common;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+
+using BizHawk.Common;
+using BizHawk.BizInvoke;
+using BizHawk.Common.PathExtensions;
+using BizHawk.Emulation.Common;
 
 namespace BizHawk.Emulation.Cores.Waterbox
 {
@@ -13,6 +15,7 @@ namespace BizHawk.Emulation.Cores.Waterbox
 	{
 		private LibWaterboxCore _core;
 		protected WaterboxHost _exe;
+		protected ICallingConventionAdapter _adapter;
 		protected LibWaterboxCore.MemoryArea[] _memoryAreas;
 		private readonly LibWaterboxCore.EmptyCallback _inputCallback;
 		protected CoreComm CoreComm { get; }
@@ -46,14 +49,15 @@ namespace BizHawk.Emulation.Cores.Waterbox
 		protected T PreInit<T>(WaterboxOptions options, IEnumerable<Delegate> allExtraDelegates = null)
 			where T : LibWaterboxCore
 		{
-			options.Path ??= CoreComm.CoreFileProvider.DllPath();
+			options.Path ??= PathUtils.DllDirectoryPath;
 			_exe = new WaterboxHost(options);
 			var delegates = new Delegate[] { _inputCallback }.AsEnumerable();
 			if (allExtraDelegates != null)
 				delegates = delegates.Concat(allExtraDelegates);
 			using (_exe.EnterExit())
 			{
-				var ret = BizInvoker.GetInvoker<T>(_exe, _exe, CallingConventionAdapters.MakeWaterbox(delegates, _exe));
+				_adapter = CallingConventionAdapters.MakeWaterbox(delegates, _exe);
+				var ret = BizInvoker.GetInvoker<T>(_exe, _exe, _adapter);
 				_core = ret;
 				return ret;
 			}
@@ -180,7 +184,7 @@ namespace BizHawk.Emulation.Cores.Waterbox
 					var source = new MemoryStream(data, false);
 					foreach (var area in _saveramAreas)
 					{
-						WaterboxUtils.CopySome(source, new MemoryDomainStream(area), area.Size);
+						MemoryBlockUtils.CopySome(source, new MemoryDomainStream(area), area.Size);
 					}
 				}
 			}
@@ -262,6 +266,8 @@ namespace BizHawk.Emulation.Cores.Waterbox
 		public bool DeterministicEmulation { get; protected set; } = true;
 		public IInputCallbackSystem InputCallbacks { get; } = new InputCallbackSystem();
 		public virtual ControllerDefinition ControllerDefinition { get; protected set; } = NullController.Instance.Definition;
+
+		public bool AvoidRewind => false;
 
 		public void LoadStateBinary(BinaryReader reader)
 		{

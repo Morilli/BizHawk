@@ -1,6 +1,7 @@
 using System.Windows.Forms;
-using BizHawk.Bizware.BizwareGL;
-using BizHawk.Bizware.OpenTK3;
+
+using BizHawk.Bizware.Graphics;
+using BizHawk.Bizware.Graphics.Controls;
 
 namespace BizHawk.Client.EmuHawk
 {
@@ -10,10 +11,10 @@ namespace BizHawk.Client.EmuHawk
 	public class RetainedGraphicsControl : GraphicsControl
 	{
 		public RetainedGraphicsControl(IGL gl)
-			: base(gl)
 		{
 			_gl = gl;
-			_guiRenderer = new GuiRenderer(gl);
+			_graphicsControl = GraphicsControlFactory.CreateGraphicsControl(gl);
+			_guiRenderer = new(gl);
 		}
 
 		/// <summary>
@@ -38,13 +39,29 @@ namespace BizHawk.Client.EmuHawk
 		private bool _retain = true;
 
 		private readonly IGL _gl;
-		private RenderTarget _rt;
+		private readonly GraphicsControl _graphicsControl;
+		private IRenderTarget _rt;
 		private readonly GuiRenderer _guiRenderer;
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+			// todo - check whether we're begun?
+			_graphicsControl.Begin();
+			Draw();
+			_graphicsControl.End();
+		}
+
+		public override void AllowTearing(bool state)
+			=> _graphicsControl.AllowTearing(state);
+
+		public override void SetVsync(bool state)
+			=> _graphicsControl.SetVsync(state);
 
 		public override void Begin()
 		{
-			base.Begin();
-			
+			_graphicsControl.Begin();
+
 			if (_retain)
 			{
 				// TODO - frugalize me
@@ -54,13 +71,28 @@ namespace BizHawk.Client.EmuHawk
 			}
 		}
 
-		protected override void OnPaint(PaintEventArgs e)
+		public override void End()
 		{
-			base.OnPaint(e);
-			// todo - check whether we're begun?
-			base.Begin();
+			if (_retain)
+			{
+				_gl.BindDefaultRenderTarget();
+			}
+
+			_graphicsControl.End();
+		}
+
+		public override void SwapBuffers()
+		{
+			// if we're not retaining, then we haven't been collecting into a framebuffer. just swap it
+			if (!_retain)
+			{
+				_graphicsControl.SwapBuffers();
+				return;
+			}
+			
+			// if we're retaining, then we cant draw until we unbind! its semantically a bit odd, but we expect users to call SwapBuffers() before end, so we cant unbind in End() even thoug hit makes a bit more sense.
+			_gl.BindDefaultRenderTarget();
 			Draw();
-			base.End();
 		}
 
 		private void Draw()
@@ -71,34 +103,10 @@ namespace BizHawk.Client.EmuHawk
 			}
 
 			_guiRenderer.Begin(Width, Height);
-			_guiRenderer.SetBlendState(_gl.BlendNoneCopy);
-			_guiRenderer.Draw(_rt.Texture2d);
+			_guiRenderer.DisableBlending();
+			_guiRenderer.Draw(_rt);
 			_guiRenderer.End();
-			base.SwapBuffers();
-		}
-
-		public override void SwapBuffers()
-		{
-			// if we're not retaining, then we haven't been collecting into a framebuffer. just swap it
-			if (!_retain)
-			{
-				base.SwapBuffers();
-				return;
-			}
-			
-			// if we're retaining, then we cant draw until we unbind! its semantically a bit odd, but we expect users to call SwapBuffers() before end, so we cant unbind in End() even thoug hit makes a bit more sense.
-			_rt.Unbind();
-			Draw();
-		}
-
-		public override void End()
-		{
-			if (_retain)
-			{
-				_rt.Unbind();
-			}
-
-			base.End();
+			_graphicsControl.SwapBuffers();
 		}
 	}
 }

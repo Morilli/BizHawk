@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using BizHawk.BizInvoke;
@@ -32,7 +33,6 @@ namespace BizHawk.Emulation.Cores.Consoles.Nintendo.NDS
 		[StructLayout(LayoutKind.Sequential)]
 		public new class FrameInfo : LibWaterboxCore.FrameInfo
 		{
-			public long Time;
 			public Buttons Keys;
 			public byte TouchX;
 			public byte TouchY;
@@ -41,50 +41,154 @@ namespace BizHawk.Emulation.Cores.Consoles.Nintendo.NDS
 			public bool ConsiderAltLag;
 		}
 
-		[Flags]
-		public enum LoadFlags : uint
+		[StructLayout(LayoutKind.Sequential)]
+		public struct RenderSettings
 		{
-			NONE = 0x00,
-			USE_REAL_BIOS = 0x01,
-			SKIP_FIRMWARE = 0x02,
-			GBA_CART_PRESENT = 0x04,
-			CLEAR_NAND = 0x08,
-			FIRMWARE_OVERRIDE = 0x10,
-			IS_DSI = 0x20,
-			LOAD_DSIWARE = 0x40,
-			THREADED_RENDERING = 0x80,
+			public bool SoftThreaded;
+			public int GLScaleFactor;
+			public bool GLBetterPolygons;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct LoadData
+		public struct NDSTime
 		{
-			public IntPtr DsRomData;
-			public int DsRomLength;
-			public IntPtr GbaRomData;
-			public int GbaRomLength;
-			public IntPtr GbaRamData;
-			public int GbaRamLength;
-			public IntPtr NandData;
-			public int NandLength;
-			public IntPtr TmdData;
-			public NDS.NDSSettings.AudioBitrateType AudioBitrate;
+			public int Year;
+			public int Month;
+			public int Day;
+			public int Hour;
+			public int Minute;
+			public int Second;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct FirmwareSettings
+		public unsafe struct FirmwareSettings
 		{
-			public IntPtr FirmwareUsername; // max 10 length (then terminator)
-			public int FirmwareUsernameLength;
-			public NDS.NDSSyncSettings.Language FirmwareLanguage;
-			public NDS.NDSSyncSettings.Month FirmwareBirthdayMonth;
-			public int FirmwareBirthdayDay;
-			public NDS.NDSSyncSettings.Color FirmwareFavouriteColour;
-			public IntPtr FirmwareMessage; // max 26 length (then terminator)
-			public int FirmwareMessageLength;
+			public bool OverrideSettings;
+			public int UsernameLength;
+			public fixed char Username[10];
+			public NDS.NDSSyncSettings.Language Language;
+			public NDS.NDSSyncSettings.Month BirthdayMonth;
+			public int BirthdayDay;
+			public NDS.NDSSyncSettings.Color Color;
+			public int MessageLength;
+			public fixed char Message[26];
 		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct InitConfig
+		{
+			public bool SkipFW;
+			public bool HasGBACart;
+			public bool DSi;
+			public bool ClearNAND;
+			public bool LoadDSiWare;
+			public bool IsWinApi;
+			public NDS.NDSSyncSettings.ThreeDeeRendererType ThreeDeeRenderer;
+			public RenderSettings RenderSettings;
+			public NDSTime StartTime;
+			public FirmwareSettings FirmwareSettings;
+		}
+
+		public enum ConfigEntry
+		{
+			// JIT_ENABLED define would add 5 entries here
+			// it is currently not (and unlikely ever to be) defined
+
+			ExternalBIOSEnable,
+
+			DLDI_Enable,
+			DLDI_ImagePath,
+			DLDI_ImageSize,
+			DLDI_ReadOnly,
+			DLDI_FolderSync,
+			DLDI_FolderPath,
+
+			DSiSD_Enable,
+			DSiSD_ImagePath,
+			DSiSD_ImageSize,
+			DSiSD_ReadOnly,
+			DSiSD_FolderSync,
+			DSiSD_FolderPath,
+
+			Firm_MAC,
+
+			WifiSettingsPath,
+
+			AudioBitDepth,
+
+			DSi_FullBIOSBoot,
+
+			// GDBSTUB_ENABLED define would add 5 entries here
+			// it will not be defined for our purposes
+		}
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate bool GetBooleanSettingCallback(ConfigEntry configEntry);
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate int GetIntegerSettingCallback(ConfigEntry configEntry);
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate void GetStringSettingCallback(ConfigEntry configEntry, IntPtr buffer, int bufferSize);
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate void GetArraySettingCallback(ConfigEntry configEntry, IntPtr buffer);
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ConfigCallbackInterface
+		{
+			public GetBooleanSettingCallback GetBoolean;
+			public GetIntegerSettingCallback GetInteger;
+			public GetStringSettingCallback GetString;
+			public GetArraySettingCallback GetArray;
+
+			public IntPtr[] AllCallbacksInArray(ICallingConventionAdapter adapter)
+			{
+				return new Delegate[] { GetBoolean, GetInteger, GetString, GetArray }
+					.Select(adapter.GetFunctionPointerForDelegate).ToArray();
+			}
+		}
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate int GetFileLengthCallback(string path);
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate void GetFileDataCallback(string path, IntPtr buffer);
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct FileCallbackInterface
+		{
+			public GetFileLengthCallback GetLength;
+			public GetFileDataCallback GetData;
+
+			public IntPtr[] AllCallbacksInArray(ICallingConventionAdapter adapter)
+			{
+				return new Delegate[] { GetLength, GetData }
+					.Select(adapter.GetFunctionPointerForDelegate).ToArray();
+			}
+		}
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate IntPtr GetGLProcAddressCallback(string proc);
+
+		public enum LogLevel : int
+		{
+			Debug,
+			Info,
+			Warn,
+			Error,
+		}
+
+		[UnmanagedFunctionPointer(CC)]
+		public delegate void LogCallback(LogLevel level, string message);
 
 		[BizImport(CC)]
-		public abstract bool Init(LoadFlags loadFlags, ref LoadData loadData, ref FirmwareSettings fwSettings);
+		public abstract IntPtr Init(
+			ref InitConfig loadData,
+			IntPtr[] configCallbackInterface, /* ref ConfigCallbackInterface */
+			IntPtr[] fileCallbackInterface, /* ref FileCallbackInterface */
+			LogCallback logCallback,
+			GetGLProcAddressCallback getGLProcAddressCallback);
 
 		[BizImport(CC)]
 		public abstract void PutSaveRam(byte[] data, uint len);
@@ -99,10 +203,10 @@ namespace BizHawk.Emulation.Cores.Consoles.Nintendo.NDS
 		public abstract bool SaveRamIsDirty();
 
 		[BizImport(CC)]
-		public abstract void ImportDSiWareSavs(uint titleId);
+		public abstract void ImportDSiWareSavs(uint titleId, byte[] data);
 
 		[BizImport(CC)]
-		public abstract void ExportDSiWareSavs(uint titleId);
+		public abstract void ExportDSiWareSavs(uint titleId, byte[] data);
 
 		[BizImport(CC)]
 		public abstract void DSiWareSavsLength(uint titleId, out int publicSavSize, out int privateSavSize, out int bannerSavSize);
@@ -157,6 +261,52 @@ namespace BizHawk.Emulation.Cores.Consoles.Nintendo.NDS
 		public abstract void GetNANDData(byte[] buf);
 
 		[BizImport(CC)]
-		public abstract void ResetCaches();
+		public abstract int GetGLTexture();
+
+		[BizImport(CC)]
+		public abstract void ReadFrameBuffer(int[] buffer);
+
+		public enum ScreenLayout : int
+		{
+			Natural,
+			Vertical,
+			Horizontal,
+			// TODO? do we want this?
+			// Hybrid,
+		}
+
+		public enum ScreenRotation : int
+		{
+			Deg0,
+			Deg90,
+			Deg180,
+			Deg270,
+		}
+
+		public enum ScreenSizing : int
+		{
+			Even = 0,
+			TopOnly = 4,
+			BotOnly = 5,
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ScreenSettings
+		{
+			public ScreenLayout ScreenLayout;
+			public ScreenRotation ScreenRotation;
+			public ScreenSizing ScreenSizing;
+			public int ScreenGap;
+			public bool ScreenSwap;
+		}
+
+		[BizImport(CC)]
+		public abstract void SetScreenSettings(ref ScreenSettings screenSettings, out int width, out int height, out int vwidth, out int vheight);
+
+		[BizImport(CC)]
+		public abstract void GetTouchCoords(ref int x, ref int y);
+
+		[BizImport(CC)]
+		public abstract void GetScreenCoords(ref float x, ref float y);
 	}
 }

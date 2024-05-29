@@ -100,9 +100,8 @@ namespace BizHawk.Emulation.Common
 			if (!inUser) _expected.Remove(Path.GetFileName(path));
 			//reminder: this COULD be done on several threads, if it takes even longer
 			using var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-			while (reader.EndOfStream == false)
+			while (reader.ReadLine() is string line)
 			{
-				var line = reader.ReadLine() ?? "";
 				try
 				{
 					if (line.StartsWith(';')) continue; // comment
@@ -423,7 +422,7 @@ namespace BizHawk.Emulation.Common
 			// If filename is all-caps, then attempt to proper-case the title.
 			if (!string.IsNullOrWhiteSpace(game.Name) && game.Name == game.Name.ToUpperInvariant())
 			{
-				game.Name = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(game.Name.ToLower());
+				game.Name = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(game.Name.ToLowerInvariant());
 			}
 
 			return game;

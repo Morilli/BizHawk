@@ -139,8 +139,6 @@ namespace BizHawk.Client.EmuHawk
 
 		private void RamSearch_Load(object sender, EventArgs e)
 		{
-			if (Settings.Columns.Exists(static c => string.IsNullOrWhiteSpace(c.Text))) Settings = new(); //HACK for previous config settings
-
 			RamSearchMenu.Items.Add(WatchListView.ToColumnsMenu(ColumnToggleCallback));
 
 			_settings = new SearchEngineSettings(MemoryDomains, Settings.UseUndoHistory);
@@ -942,11 +940,11 @@ namespace BizHawk.Client.EmuHawk
 			{
 				Columns = new List<RollColumn>
 				{
-					new RollColumn { Text = "Address", Name = WatchList.Address, Visible = true, UnscaledWidth = 60, Type = ColumnType.Text },
-					new RollColumn { Text = "Value", Name = WatchList.Value, Visible = true, UnscaledWidth = 59, Type = ColumnType.Text },
-					new RollColumn { Text = "Prev", Name = WatchList.Prev, Visible = true, UnscaledWidth = 59, Type = ColumnType.Text },
-					new RollColumn { Text = "Changes", Name = WatchList.ChangesCol, Visible = true, UnscaledWidth = 60, Type = ColumnType.Text },
-					new RollColumn { Text = "Diff", Name = WatchList.Diff, Visible = false, UnscaledWidth = 59, Type = ColumnType.Text }
+					new(name: WatchList.Address, widthUnscaled: 60, text: "Address"),
+					new(name: WatchList.Value, widthUnscaled: 59, text: "Value"),
+					new(name: WatchList.Prev, widthUnscaled: 59, text: "Prev"),
+					new(name: WatchList.ChangesCol, widthUnscaled: 60, text: "Changes"),
+					new(name: WatchList.Diff, widthUnscaled: 59, text: "Diff") { Visible = false },
 				};
 
 				PreviewMode = true;
@@ -1637,7 +1635,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void WatchListView_ColumnClick(object sender, InputRoll.ColumnClickEventArgs e)
 		{
-			var column = e.Column;
+			var column = e.Column!;
 			if (column.Name != _sortedColumn)
 			{
 				_sortReverse = false;

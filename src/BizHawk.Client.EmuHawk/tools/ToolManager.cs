@@ -24,7 +24,9 @@ namespace BizHawk.Client.EmuHawk
 		private readonly DisplayManager _displayManager;
 		private readonly ExternalToolManager _extToolManager;
 		private readonly InputManager _inputManager;
-		private IExternalApiProvider _apiProvider;
+
+		private IExternalApiProvider _apiProvider = null;
+
 		private IEmulator _emulator;
 		private readonly IMovieSession _movieSession;
 		private IGameInfo _game;
@@ -33,12 +35,6 @@ namespace BizHawk.Client.EmuHawk
 		// For instance, add an IToolForm property called UsesCheats, so that a UpdateCheatRelatedTools() method can update all tools of this type
 		// Also a UsesRam, and similar method
 		private readonly List<IToolForm> _tools = new List<IToolForm>();
-
-		private IExternalApiProvider ApiProvider
-		{
-			get => _apiProvider;
-			set => _owner.EmuClient = (EmuClientApi) (_apiProvider = value).GetApi<IEmuClientApi>();
-		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ToolManager"/> class.
@@ -61,8 +57,19 @@ namespace BizHawk.Client.EmuHawk
 			_emulator = emulator;
 			_movieSession = movieSession;
 			_game = game;
-			ApiProvider = ApiManager.Restart(_emulator.ServiceProvider, _owner, _displayManager, _inputManager, _movieSession, this, _config, _emulator, _game);
 		}
+
+		private IExternalApiProvider GetOrInitApiProvider()
+			=> _apiProvider ??= ApiManager.Restart(
+				_emulator.ServiceProvider,
+				_owner,
+				_displayManager,
+				_inputManager,
+				_movieSession,
+				this,
+				_config,
+				_emulator,
+				_game);
 
 		/// <summary>
 		/// Loads the tool dialog T (T must implements <see cref="IToolForm"/>) , if it does not exist it will be created, if it is already open, it will be focused
@@ -85,10 +92,10 @@ namespace BizHawk.Client.EmuHawk
 		// If the form inherits ToolFormBase, it will set base properties such as Tools, Config, etc
 		private void SetBaseProperties(IToolForm form)
 		{
-			if (!(form is FormBase f)) return;
+			if (form is not FormBase f) return;
 
 			f.Config = _config;
-			if (!(form is ToolFormBase tool)) return;
+			if (form is not ToolFormBase tool) return;
 			tool.SetToolFormBaseProps(_displayManager, _inputManager, _owner, _movieSession, this, _game);
 		}
 
@@ -121,7 +128,7 @@ namespace BizHawk.Client.EmuHawk
 				_tools.Remove(existingTool);
 			}
 
-			if (!(CreateInstance<T>(toolPath) is T newTool)) return null;
+			if (CreateInstance<T>(toolPath) is not T newTool) return null;
 
 			if (newTool is Form form) form.Owner = _owner;
 			if (!ServiceInjector.UpdateServices(_emulator.ServiceProvider, newTool)) return null; //TODO pass `true` for `mayCache` when from EmuHawk assembly
@@ -165,7 +172,11 @@ namespace BizHawk.Client.EmuHawk
 			var newTool = (IExternalToolForm) CreateInstance(typeof(IExternalToolForm), toolPath, customFormTypeName, skipExtToolWarning: skipExtToolWarning);
 			if (newTool == null) return null;
 			if (newTool is Form form) form.Owner = _owner;
-			if (!(ServiceInjector.UpdateServices(_emulator.ServiceProvider, newTool) && ApiInjector.UpdateApis(ApiProvider, newTool))) return null;
+			if (!ServiceInjector.UpdateServices(_emulator.ServiceProvider, newTool)
+				|| !ApiInjector.UpdateApis(GetOrInitApiProvider, newTool))
+			{
+				return null;
+			}
 			SetBaseProperties(newTool);
 			// auto settings
 			if (newTool is IToolFormAutoConfig autoConfigTool)
@@ -402,7 +413,7 @@ namespace BizHawk.Client.EmuHawk
 						var converter = TypeDescriptor.GetConverter(prop.PropertyType);
 						val = converter.ConvertFromString(null, CultureInfo.InvariantCulture, str);
 					}
-					else if (!(val is bool) && prop.PropertyType.IsPrimitive)
+					else if (val is not bool && prop.PropertyType.IsPrimitive)
 					{
 						// numeric constants are similarly hosed
 						val = Convert.ChangeType(val, prop.PropertyType, CultureInfo.InvariantCulture);
@@ -430,7 +441,7 @@ namespace BizHawk.Client.EmuHawk
 		/// <typeparam name="T">Type of tool to check</typeparam>
 		/// <remarks>yo why do we have 4 versions of this, each with slightly different behaviour in edge cases --yoshi</remarks>
 		public bool IsLoaded<T>() where T : IToolForm
-			=> _tools.OfType<T>().FirstOrDefault()?.IsActive is true;
+			=> _tools.Find(static t => t is T)?.IsActive is true;
 
 		public bool IsLoaded(Type toolType)
 			=> _tools.Find(t => t.GetType() == toolType)?.IsActive is true;
@@ -557,7 +568,7 @@ namespace BizHawk.Client.EmuHawk
 			_config = config;
 			_emulator = emulator;
 			_game = game;
-			ApiProvider = ApiManager.Restart(_emulator.ServiceProvider, _owner, _displayManager, _inputManager, _movieSession, this, _config, _emulator, _game);
+			_apiProvider = null;
 			// If Cheat tool is loaded, restarting will restart the list too anyway
 			if (!Has<Cheats>())
 			{
@@ -570,7 +581,7 @@ namespace BizHawk.Client.EmuHawk
 			{
 				SetBaseProperties(tool);
 				if (ServiceInjector.UpdateServices(_emulator.ServiceProvider, tool)
-					&& (tool is not IExternalToolForm || ApiInjector.UpdateApis(ApiProvider, tool)))
+					&& (tool is not IExternalToolForm || ApiInjector.UpdateApis(GetOrInitApiProvider, tool)))
 				{
 					if (tool.IsActive) tool.Restart();
 				}
@@ -758,7 +769,11 @@ namespace BizHawk.Client.EmuHawk
 		public bool IsAvailable(Type tool)
 		{
 			if (!ServiceInjector.IsAvailable(_emulator.ServiceProvider, tool)) return false;
-			if (typeof(IExternalToolForm).IsAssignableFrom(tool) && !ApiInjector.IsAvailable(ApiProvider, tool)) return false;
+			if (typeof(IExternalToolForm).IsAssignableFrom(tool)
+				&& !ApiInjector.IsAvailable(GetOrInitApiProvider, tool))
+			{
+				return false;
+			}
 			if (!PossibleToolTypeNames.Contains(tool.AssemblyQualifiedName) && !_extToolManager.PossibleExtToolTypeNames.Contains(tool.AssemblyQualifiedName)) return false; // not a tool
 
 			ToolAttribute attr = tool.GetCustomAttributes(false).OfType<ToolAttribute>().SingleOrDefault();
@@ -835,7 +850,7 @@ namespace BizHawk.Client.EmuHawk
 			var path = _config.PathEntries.CheatsAbsolutePath(_game.System);
 
 			var f = new FileInfo(path);
-			if (f.Directory != null && f.Directory.Exists == false)
+			if (f.Directory != null && !f.Directory.Exists)
 			{
 				f.Directory.Create();
 			}

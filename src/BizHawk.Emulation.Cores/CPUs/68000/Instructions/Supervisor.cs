@@ -6,7 +6,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 	{
 		private void MOVEtSR()
 		{
-			if (S == false)
+			if (!S)
 				throw new Exception("Write to SR when not in supervisor mode. supposed to trap or something...");
 
 			int mode = (op >> 3) & 7;
@@ -29,7 +29,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 		{
 			int mode = (op >> 3) & 7;
 			int reg = (op >> 0) & 7;
-			WriteValueW(mode, reg, (short)SR);
+			WriteValueW(mode, reg, SR);
 			PendingCycles -= (mode == 0) ? 6 : 8 + EACyclesBW[mode, reg];
 		}
 
@@ -45,7 +45,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 
 		private void MOVEUSP()
 		{
-			if (S == false)
+			if (!S)
 				throw new Exception("MOVE to USP when not supervisor. needs to trap");
 
 			int dir = (op >> 3) & 1;
@@ -69,7 +69,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 
 		private void ANDI_SR()
 		{
-			if (S == false)
+			if (!S)
 				throw new Exception("trap!");
 			SR &= ReadWord(PC); PC += 2;
 			PendingCycles -= 20;
@@ -85,7 +85,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 
 		private void EORI_SR()
 		{
-			if (S == false)
+			if (!S)
 				throw new Exception("trap!");
 			SR ^= ReadWord(PC); PC += 2;
 			PendingCycles -= 20;
@@ -101,7 +101,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 
 		private void ORI_SR()
 		{
-			if (S == false)
+			if (!S)
 				throw new Exception("trap!");
 			SR |= ReadWord(PC); PC += 2;
 			PendingCycles -= 20;
@@ -151,7 +151,7 @@ namespace BizHawk.Emulation.Cores.Components.M68000
 
 		private void TrapVector(int vector)
 		{
-			short sr = (short)SR;        // capture current SR.
+			short sr = SR;        // capture current SR.
 			S = true;                    // switch to supervisor mode, if not already in it.
 			A[7].s32 -= 4;               // Push PC on stack
 			WriteLong(A[7].s32, PC);

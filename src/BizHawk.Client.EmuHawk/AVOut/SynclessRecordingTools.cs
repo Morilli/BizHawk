@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-using BizHawk.Bizware.BizwareGL;
+using BizHawk.Bizware.Graphics;
 using BizHawk.Client.Common;
 using BizHawk.Emulation.Common;
 
@@ -51,8 +51,8 @@ namespace BizHawk.Client.EmuHawk
 			foreach (var line in lines)
 			{
 				int idx = line.IndexOf('=');
-				string key = line.Substring(0, idx);
-				string value = line.Substring(idx + 1, line.Length - (idx + 1));
+				string key = line[..idx];
+				string value = line[(idx + 1)..];
 				if (key == "framesdir")
 				{
 					framesDir = value;

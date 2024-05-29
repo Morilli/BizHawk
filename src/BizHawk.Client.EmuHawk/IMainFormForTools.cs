@@ -1,6 +1,6 @@
 using System;
 
-using BizHawk.Bizware.BizwareGL;
+using BizHawk.Bizware.Graphics;
 using BizHawk.Client.Common;
 using BizHawk.Emulation.Common;
 
@@ -40,9 +40,6 @@ namespace BizHawk.Client.EmuHawk
 
 		/// <remarks>only referenced from <see cref="PlaybackBox"/></remarks>
 		bool PressRewind { get; set; }
-
-		/// <remarks>only referenced from <see cref="TAStudio"/></remarks>
-		IQuickBmpFile QuickBmpFile { get; }
 
 		/// <remarks>only referenced from <see cref="GenericDebugger"/></remarks>
 		event Action<bool> OnPauseChanged;

@@ -31,8 +31,8 @@ namespace BizHawk.Emulation.Cores.PCEngine
 				SystemId = VSystemID.Raw.PCECD;
 				Type = NecSystemType.TurboCD;
 				this.disc = lp.Discs[0].DiscData;
-				Settings = (PCESettings)lp.Settings ?? new PCESettings();
-				_syncSettings = (PCESyncSettings)lp.SyncSettings ?? new PCESyncSettings();
+				Settings = lp.Settings ?? new PCESettings();
+				_syncSettings = lp.SyncSettings ?? new PCESyncSettings();
 
 				var (rom, biosInfo) = lp.Comm.CoreFileProvider.GetFirmwareWithGameInfoOrThrow(
 					new("PCECD", "Bios"),
@@ -49,7 +49,7 @@ namespace BizHawk.Emulation.Cores.PCEngine
 					lp.Comm.ShowMessage(
 						"The PCE-CD System Card you have selected is not recognized in our database. That might mean it's a bad dump, or isn't the correct rom.");
 				}
-				else if (biosInfo["BIOS"] == false)
+				else if (!biosInfo["BIOS"])
 				{
 					// zeromus says: someone please write a note about how this could possibly happen.
 					// it seems like this is a relic of using gameDB for storing whether something is a bios? firmwareDB should be handling it now.
@@ -62,7 +62,7 @@ namespace BizHawk.Emulation.Cores.PCEngine
 					lp.Game.AddOption("SuperSysCard", "");
 				}
 
-				if (lp.Game["NeedSuperSysCard"] && lp.Game["SuperSysCard"] == false)
+				if (lp.Game["NeedSuperSysCard"] && !lp.Game["SuperSysCard"])
 				{
 					lp.Comm.ShowMessage(
 						"This game requires a version 3.0 System card and won't run with the system card you've selected. Try selecting a 3.0 System Card in the firmware configuration.");
@@ -96,8 +96,8 @@ namespace BizHawk.Emulation.Cores.PCEngine
 						break;
 				}
 
-				Settings = (PCESettings)lp.Settings ?? new PCESettings();
-				_syncSettings = (PCESyncSettings)lp.SyncSettings ?? new PCESyncSettings();
+				Settings = lp.Settings ?? new PCESettings();
+				_syncSettings = lp.SyncSettings ?? new PCESyncSettings();
 				Init(lp.Game, lp.Roms[0].RomData);
 
 				_controllerDeck = new PceControllerDeck(

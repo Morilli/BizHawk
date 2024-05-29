@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace BizHawk.Client.Common
 {
@@ -10,5 +11,6 @@ namespace BizHawk.Client.Common
 		int MaxSamplesDeficit { get; }
 		int CalculateSamplesNeeded();
 		void WriteSamples(short[] samples, int sampleOffset, int sampleCount);
+		void PlayWavFile(Stream wavFile, double volume);
 	}
 }

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using BizHawk.Common.PathExtensions;
+using BizHawk.Common.StringExtensions;
 using BizHawk.Emulation.Common;
 
 namespace BizHawk.Client.Common
@@ -17,20 +20,16 @@ namespace BizHawk.Client.Common
 
 		private IMovie _queuedMovie;
 
-		private readonly IQuickBmpFile _quickBmpFile;
-
 		public MovieSession(
 			IMovieConfig settings,
 			string backDirectory,
 			IDialogParent dialogParent,
-			IQuickBmpFile quickBmpFile,
 			Action pauseCallback,
 			Action modeChangedCallback)
 		{
 			Settings = settings;
 			BackupDirectory = backDirectory;
 			_dialogParent = dialogParent;
-			_quickBmpFile = quickBmpFile;
 			_pauseCallback = pauseCallback
 				?? throw new ArgumentNullException(paramName: nameof(pauseCallback));
 			_modeChangedCallback = modeChangedCallback
@@ -157,7 +156,9 @@ namespace BizHawk.Client.Common
 				}
 				else if (Movie.IsPlayingOrFinished())
 				{
-					LatchInputToLog();
+					// set the controller state to the previous frame for input display purposes
+					int previousFrame = Movie.Emulator.Frame - 1;
+					Movie.Session.MovieController.SetFrom(Movie.GetInputState(previousFrame));
 				}
 				else if (Movie.IsFinished())
 				{
@@ -189,7 +190,13 @@ namespace BizHawk.Client.Common
 		}
 
 		/// <exception cref="MoviePlatformMismatchException"><paramref name="record"/> is <see langword="false"/> and <paramref name="movie"/>.<see cref="IBasicMovieInfo.SystemID"/> does not match <paramref name="systemId"/>.<see cref="IEmulator.SystemId"/></exception>
-		public void QueueNewMovie(IMovie movie, bool record, string systemId, IDictionary<string, string> preferredCores)
+		public void QueueNewMovie(
+			IMovie movie,
+			bool record,
+			string systemId,
+			string loadedRomHash,
+			PathEntryCollection pathEntries,
+			IDictionary<string, string> preferredCores)
 		{
 			if (movie.IsActive() && movie.Changes)
 			{
@@ -204,6 +211,22 @@ namespace BizHawk.Client.Common
 				{
 					throw new MoviePlatformMismatchException(
 						$"Movie system Id ({movie.SystemID}) does not match the currently loaded platform ({systemId}), unable to load");
+				}
+
+				if (!(string.IsNullOrEmpty(movie.Hash) || loadedRomHash.Equals(movie.Hash, StringComparison.Ordinal))
+					&& movie is TasMovie tasproj)
+				{
+					var result = _dialogParent.ModalMessageBox2(
+						caption: "Discard GreenZone?",
+						text: $"The TAStudio project {movie.Filename.MakeRelativeTo(pathEntries.MovieAbsolutePath())} appears to be for a different game than the one that's loaded.\n"
+							+ "Choose \"No\" to continue anyway, which may lead to an invalid savestate being loaded.\n"
+							+ "Choose \"Yes\" to discard the GreenZone (savestate history). This is safer, and at worst you'll only need to watch through the whole movie.");
+					//TODO add abort option
+					if (result)
+					{
+						tasproj.TasSession.UpdateValues(frame: 0, currentBranch: tasproj.TasSession.CurrentBranch); // wtf is this API --yoshi
+						tasproj.InvalidateEntireGreenzone();
+					}
 				}
 			}
 
@@ -311,9 +334,9 @@ namespace BizHawk.Client.Common
 		public IMovie Get(string path)
 		{
 			// TODO: change IMovies to take HawkFiles only and not path
-			if (Path.GetExtension(path)?.EndsWith("tasproj") ?? false)
+			if (Path.GetExtension(path)?.EndsWithOrdinal("tasproj") ?? false)
 			{
-				return new TasMovie(this, path, _quickBmpFile);
+				return new TasMovie(this, path);
 			}
 
 			return new Bk2Movie(this, path);
@@ -322,7 +345,7 @@ namespace BizHawk.Client.Common
 		public void PopupMessage(string message) => _dialogParent.ModalMessageBox(message, "Warning", EMsgBoxIcon.Warning);
 
 		private void Output(string message)
-			=> _dialogParent.DialogController.AddOnScreenMessage(message);
+			=> _dialogParent.AddOnScreenMessage(message);
 
 		private void LatchInputToUser()
 		{

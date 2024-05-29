@@ -116,6 +116,7 @@ namespace BizHawk.Emulation.Cores.Consoles.Sega.gpgx
 		private GPGXSyncSettings _syncSettings;
 		private GPGXSettings _settings;
 
+		[CoreSettings]
 		public class GPGXSettings
 		{
 			[DeepEqualsIgnore]
@@ -239,9 +240,10 @@ namespace BizHawk.Emulation.Cores.Consoles.Sega.gpgx
 			
 		}
 
+		[CoreSettings]
 		public class GPGXSyncSettings
 		{
-			[DisplayName("Use Six Button Controllers")]
+			[DisplayName("[Genesis/CD] Use Six Button Controllers")]
 			[Description("Controls the type of any attached normal controllers; six button controllers are used if true, otherwise three button controllers.  Some games don't work correctly with six button controllers.  Not relevant if other controller types are connected.")]
 			[DefaultValue(false)]
 			public bool UseSixButton { get; set; }
@@ -261,6 +263,36 @@ namespace BizHawk.Emulation.Cores.Consoles.Sega.gpgx
 			[DefaultValue(LibGPGX.Region.Autodetect)]
 			public LibGPGX.Region Region { get; set; }
 
+			[DisplayName("Force VDP Mode")]
+			[Description("Overrides the VDP mode to force it to run at either 60Hz (NTSC) or 50Hz (PAL), regardless of system region.")]
+			[DefaultValue(LibGPGX.ForceVDP.Disabled)]
+			public LibGPGX.ForceVDP ForceVDP { get; set; }
+
+			[DisplayName("Load BIOS")]
+			[Description("Indicates whether to load the system BIOS rom.")]
+			[DefaultValue(false)]
+			public bool LoadBIOS { get; set; }
+
+			[DisplayName("Overscan")]
+			[Description("Sets overscan borders shown.")]
+			[DefaultValue(LibGPGX.InitSettings.OverscanType.None)]
+			public LibGPGX.InitSettings.OverscanType Overscan { get; set; }
+
+			[DisplayName("[GG] Display Extra Area")]
+			[Description("Enables displaying extended Game Gear screen (256x192).")]
+			[DefaultValue(false)]
+			public bool GGExtra { get; set; }
+
+			[DisplayName("[SMS] FM Sound Chip Type")]
+			[Description("Sets the method used to emulate the FM Sound Unit of the Sega Mark III/Master System. 'MAME' is fast and runs full speed on most systems.'Nuked' is cycle accurate, very high quality, and have substantial CPU requirements.")]
+			[DefaultValue(LibGPGX.InitSettings.SMSFMSoundChipType.YM2413_MAME)]
+			public LibGPGX.InitSettings.SMSFMSoundChipType SMSFMSoundChip { get; set; }
+
+			[DisplayName("[Genesis/CD] FM Sound Chip Type")]
+			[Description("Sets the method used to emulate the FM synthesizer (main sound generator) of the Mega Drive/Genesis.  'MAME' options are fast, and run full speed on most systems.  'Nuked' options are cycle accurate, very high quality, and have substantial CPU requirements.  The 'YM2612' chip is used by the original Model 1 Mega Drive/Genesis.  The 'YM3438' is used in later Mega Drive/Genesis revisions.")]
+			[DefaultValue(LibGPGX.InitSettings.GenesisFMSoundChipType.MAME_YM2612)]
+			public LibGPGX.InitSettings.GenesisFMSoundChipType GenesisFMSoundChip { get; set; }
+
 			[DisplayName("Audio Filter")]
 			[DefaultValue(LibGPGX.InitSettings.FilterType.LowPass)]
 			public LibGPGX.InitSettings.FilterType Filter { get; set; }
@@ -268,7 +300,7 @@ namespace BizHawk.Emulation.Cores.Consoles.Sega.gpgx
 			[DisplayName("Low Pass Range")]
 			[Description("Only active when filter type is lowpass. Range is 0 - 0xffff. Default value is 40%")]
 			[TypeConverter(typeof(UshortToHexConverter))]
-			[DefaultValue((ushort)0x6666)]
+			[DefaultValue(0x6666)]
 			public ushort LowPassRange { get; set; }
 
 			[DisplayName("Three band low cutoff")]
@@ -298,8 +330,13 @@ namespace BizHawk.Emulation.Cores.Consoles.Sega.gpgx
 
 			[Description("Magic pink by default. Requires core reboot")]
 			[TypeConverter(typeof(UintToHexConverter))]
-			[DefaultValue((uint)0xffff00ff)]
+			[DefaultValue(0xffff00ff)]
 			public uint BackdropColor { get; set; }
+
+			[DisplayName("Sprites always on top")]
+			[Description("Forces sprites to always be displayed on top")]
+			[DefaultValue(false)]
+			public bool SpritesAlwaysOnTop { get; set; }
 
 			public LibGPGX.InitSettings GetNativeSettings(GameInfo game)
 			{
@@ -317,7 +354,14 @@ namespace BizHawk.Emulation.Cores.Consoles.Sega.gpgx
 					InputSystemA = SystemForSystem(ControlTypeLeft),
 					InputSystemB = SystemForSystem(ControlTypeRight),
 					Region = Region,
+					ForceVDP = ForceVDP,
+					LoadBIOS = LoadBIOS,
 					ForceSram = game["sram"],
+					SMSFMSoundChip = SMSFMSoundChip,
+					GenesisFMSoundChip = GenesisFMSoundChip,
+					SpritesAlwaysOnTop = SpritesAlwaysOnTop,
+					Overscan = Overscan,
+					GGExtra = GGExtra,
 				};
 			}
 

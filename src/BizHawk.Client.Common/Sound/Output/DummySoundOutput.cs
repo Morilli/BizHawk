@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace BizHawk.Client.Common
 {
@@ -75,6 +76,10 @@ namespace BizHawk.Client.Common
 		{
 			if (sampleCount == 0) return;
 			_remainingSamples += sampleCount;
+		}
+
+		public void PlayWavFile(Stream wavFile, double volume)
+		{
 		}
 	}
 }

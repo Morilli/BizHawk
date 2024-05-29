@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
 
-using BizHawk.Bizware.DirectX;
-using BizHawk.Bizware.OpenTK3;
+using BizHawk.Bizware.Input;
 using BizHawk.Common;
 using BizHawk.Client.Common;
 using BizHawk.Common.CollectionExtensions;
@@ -28,7 +27,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private readonly HashSet<Control> _wantingMouseFocus = new HashSet<Control>();
 
-		public static Input Instance;
+		public static Input Instance { get; set; }
 
 		private readonly Thread _updateThread;
 
@@ -46,13 +45,7 @@ namespace BizHawk.Client.EmuHawk
 
 			MainFormInputAllowedCallback = mainFormInputAllowedCallback;
 
-			Adapter = _currentConfig.HostInputMethod switch
-			{
-				EHostInputMethod.OpenTK => new OpenTKInputAdapter(),
-				_ when OSTailoredCode.IsUnixHost => new OpenTKInputAdapter(),
-				EHostInputMethod.DirectInput => new DirectInputAdapter(),
-				_ => throw new InvalidOperationException()
-			};
+			Adapter = new SDL2InputAdapter();
 			Console.WriteLine($"Using {Adapter.Desc} for host input (keyboard + gamepads)");
 			Adapter.UpdateConfig(_currentConfig);
 			Adapter.FirstInitAll(mainFormHandle);
@@ -172,13 +165,12 @@ namespace BizHawk.Client.EmuHawk
 			}
 		}
 
-		public IDictionary<string, int> GetAxisValues()
+		public KeyValuePair<string, int>[] GetAxisValues()
 		{
 			lock (_axisValues)
 			{
-				return _axisValues.ToDictionary(d => d.Key, d => d.Value);
+				return _axisValues.ToArray();
 			}
-			
 		}
 
 		/// <summary>

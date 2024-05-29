@@ -5,6 +5,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+#if NET6_0
+using System.Runtime.CompilerServices;
+#endif
 using System.Threading;
 
 namespace BizHawk.Common
@@ -79,7 +82,7 @@ namespace BizHawk.Common
 		}
 
 #if NET6_0
-		public static string DescribeIsNull<T>(T? obj, [CallerArgumentExpression("obj")] string expr = default)
+		public static string DescribeIsNull<T>(T? obj, [CallerArgumentExpression("obj")] string? expr = default)
 #else
 		public static string DescribeIsNull<T>(T? obj, string expr)
 #endif
@@ -87,7 +90,7 @@ namespace BizHawk.Common
 			=> $"{expr} is {(obj is null ? "null" : "not null")}";
 
 #if NET6_0
-		public static string DescribeIsNullValT<T>(T? boxed, [CallerArgumentExpression("boxed")] string expr = default)
+		public static string DescribeIsNullValT<T>(T? boxed, [CallerArgumentExpression("boxed")] string? expr = default)
 #else
 		public static string DescribeIsNullValT<T>(T? boxed, string expr)
 #endif
@@ -108,7 +111,7 @@ namespace BizHawk.Common
 		/// <returns>all <see cref="Type">Types</see> with the name <paramref name="className"/></returns>
 		/// <remarks>adapted from https://stackoverflow.com/a/13727044/7467292</remarks>
 		public static IList<Type> GetTypeByName(string className) => AppDomain.CurrentDomain.GetAssemblies()
-			.SelectMany(asm => asm.GetTypesWithoutLoadErrors().Where(type => className.Equals(type.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
+			.SelectMany(asm => asm.GetTypesWithoutLoadErrors().Where(type => className.Equals(type.Name, StringComparison.OrdinalIgnoreCase))).ToList();
 
 		/// <remarks>TODO replace this with GetTypes (i.e. the try block) when VB.NET dep is properly removed</remarks>
 		public static IEnumerable<Type> GetTypesWithoutLoadErrors(this Assembly assembly)
@@ -168,6 +171,7 @@ namespace BizHawk.Common
 			while (len > 0)
 			{
 				var done = br.Read(ret, ofs, len);
+				if (done is 0) _ = br.ReadByte(); // triggers an EndOfStreamException (as there's otherwise no way to indicate this failure state to the caller)
 				ofs += done;
 				len -= done;
 			}

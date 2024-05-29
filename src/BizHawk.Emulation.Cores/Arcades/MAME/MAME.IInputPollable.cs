@@ -43,15 +43,24 @@ namespace BizHawk.Emulation.Cores.Arcades.MAME
 				fieldPtrList.Add(ptr);
 			}
 
+			MAMEController.BoolButtons.Add("Reset");
+
 			foreach (var buttonField in buttonFields)
 			{
 				if (buttonField != string.Empty && !buttonField.Contains('%'))
 				{
 					var tag = buttonField.SubstringBefore(',');
 					var field = buttonField.SubstringAfterLast(',');
+					var dupName = "";
 					buttonFieldList.Add(field);
 					AddFieldPtr(tag, field);
-					MAMEController.BoolButtons.Add(field);
+
+					if (MAMEController.BoolButtons.Contains(field))
+					{
+						dupName = $" [{ tag }]"; 
+					}
+
+					MAMEController.BoolButtons.Add(field + dupName);
 				}
 			}
 
@@ -81,6 +90,11 @@ namespace BizHawk.Emulation.Cores.Arcades.MAME
 
 		private void SendInput(IController controller)
 		{
+			if (controller.IsPressed("Reset"))
+			{
+				_core.mame_lua_execute(MAMELuaCommand.Reset);
+			}
+
 			for (var i = 0; i < _buttonFields.Length; i++)
 			{
 				_fieldInputs[i] = controller.IsPressed(_buttonFields[i]) ? 1 : 0;

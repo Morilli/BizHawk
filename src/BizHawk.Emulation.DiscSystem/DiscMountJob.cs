@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using BizHawk.Common.PathExtensions;
 using BizHawk.Emulation.DiscSystem.CUE;
 
@@ -149,7 +148,7 @@ namespace BizHawk.Emulation.DiscSystem
 				}
 				if (!string.IsNullOrEmpty(parseJob.OUT_Log)) Console.WriteLine(parseJob.OUT_Log);
 				ConcatenateJobLog(parseJob);
-				if (!okParse) return;
+				if (!okParse || parseJob.OUT_ErrorLevel) return;
 
 				// compile the cue file
 				// includes resolving required bin files and finding out what would processing would need to happen in order to load the cue
@@ -195,6 +194,9 @@ namespace BizHawk.Emulation.DiscSystem
 					break;
 				case ".cdi":
 					OUT_Disc = CDI_Format.LoadCDIToDisc(IN_FromPath, IN_DiscMountPolicy);
+					break;
+				case ".chd":
+					OUT_Disc = CHD_Format.LoadCHDToDisc(IN_FromPath, IN_DiscMountPolicy);
 					break;
 				case ".cue":
 					LoadCue(dir, File.ReadAllText(IN_FromPath));

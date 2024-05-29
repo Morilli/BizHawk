@@ -9,8 +9,8 @@ using BizHawk.Client.Common;
 using BizHawk.Client.EmuHawk.ToolExtensions;
 using BizHawk.Client.EmuHawk.Properties;
 using BizHawk.Common;
+using BizHawk.Common.StringExtensions;
 using BizHawk.Emulation.Common;
-using BizHawk.Emulation.Cores.Nintendo.N64;
 
 namespace BizHawk.Client.EmuHawk
 {
@@ -227,7 +227,7 @@ namespace BizHawk.Client.EmuHawk
 			}
 
 			// Start Scenario 1: A regular movie is active
-			if (MovieSession.Movie.IsActive() && !(MovieSession.Movie is ITasMovie))
+			if (MovieSession.Movie.IsActive() && MovieSession.Movie is not ITasMovie)
 			{
 				var changesString = "Would you like to save the current movie before closing it?";
 				if (MovieSession.Movie.Changes)
@@ -340,25 +340,26 @@ namespace BizHawk.Client.EmuHawk
 			movie.GetClientSettingsOnLoad = json => TasView.LoadSettingsSerialized(json);
 		}
 
+		private static readonly string[] N64CButtonSuffixes = { " C Up", " C Down", " C Left", " C Right" };
+
 		private void SetUpColumns()
 		{
 			TasView.AllColumns.Clear();
-			AddColumn(CursorColumnName, "", 18);
-			TasView.AllColumns.Add(new RollColumn
+			TasView.AllColumns.Add(new(name: CursorColumnName, widthUnscaled: 18, type: ColumnType.Boolean, text: string.Empty));
+			TasView.AllColumns.Add(new(name: FrameColumnName, widthUnscaled: 68, text: "Frame#")
 			{
-				Name = FrameColumnName,
-				Text = "Frame#",
-				UnscaledWidth = 68,
-				Type = ColumnType.Text,
-				Rotatable = true
+				Rotatable = true,
 			});
 
 			var columnNames = MovieSession.Movie
 				.LogGeneratorInstance(MovieSession.MovieController)
 				.Map();
 
-			foreach (var (name, mnemonic) in columnNames)
+			foreach (var (name, mnemonic0) in columnNames)
 			{
+				var mnemonic = Emulator.SystemId is VSystemID.Raw.N64 && N64CButtonSuffixes.Any(name.EndsWithOrdinal)
+					? $"c{mnemonic0.ToUpperInvariant()}" // prepend 'c' to differentiate from L/R buttons -- this only affects the column headers
+					: mnemonic0;
 				ColumnType type;
 				int digits;
 				if (ControllerType.Axes.TryGetValue(name, out var range))
@@ -372,7 +373,11 @@ namespace BizHawk.Client.EmuHawk
 					digits = mnemonic.Length;
 				}
 
-				AddColumn(name, mnemonic, (digits * 6) + 14, type); // magic numbers reused in EditBranchTextPopUp()
+				TasView.AllColumns.Add(new(
+					name: name,
+					widthUnscaled: (digits * 6) + 14, // magic numbers reused in EditBranchTextPopUp() --feos // not since eb63fa5a9 (before 2.3.3) --yoshi
+					type: type,
+					text: mnemonic));
 			}
 
 			var columnsToHide = TasView.AllColumns
@@ -383,29 +388,23 @@ namespace BizHawk.Client.EmuHawk
 					|| c.Name == "Light Sensor"
 					|| c.Name == "Disc Select"
 					|| c.Name == "Disk Index"
-					|| c.Name.StartsWith("Tilt")
-					|| c.Name.StartsWith("Key ")
-					|| c.Name.StartsWith("Open")
-					|| c.Name.StartsWith("Close")
-					|| c.Name.EndsWith("Tape")
-					|| c.Name.EndsWith("Disk")
-					|| c.Name.EndsWith("Block")
-					|| c.Name.EndsWith("Status"));
+					|| c.Name.StartsWithOrdinal("Tilt")
+					|| c.Name.StartsWithOrdinal("Key ")
+					|| c.Name.StartsWithOrdinal("Open")
+					|| c.Name.StartsWithOrdinal("Close")
+					|| c.Name.EndsWithOrdinal("Tape")
+					|| c.Name.EndsWithOrdinal("Disk")
+					|| c.Name.EndsWithOrdinal("Block")
+					|| c.Name.EndsWithOrdinal("Status"));
 
 			if (Emulator.SystemId is VSystemID.Raw.N64)
 			{
-				foreach (var c in TasView.AllColumns
-					.Where(static c => c.Name.EndsWith(" C Up") || c.Name.EndsWith(" C Down")
-						|| c.Name.EndsWith(" C Left") || c.Name.EndsWith(" C Right")))
-				{
-					c.Text = $"c{c.Text.ToUpperInvariant()}"; // prepend 'c' to differentiate from L/R buttons -- only affects table header
-				}
 				var fakeAnalogControls = TasView.AllColumns
 					.Where(c =>
-						c.Name.EndsWith("A Up")
-						|| c.Name.EndsWith("A Down")
-						|| c.Name.EndsWith("A Left")
-						|| c.Name.EndsWith("A Right"));
+						c.Name.EndsWithOrdinal("A Up")
+						|| c.Name.EndsWithOrdinal("A Down")
+						|| c.Name.EndsWithOrdinal("A Left")
+						|| c.Name.EndsWithOrdinal("A Right"));
 
 				columnsToHide = columnsToHide.Concat(fakeAnalogControls);
 			}
@@ -450,8 +449,8 @@ namespace BizHawk.Client.EmuHawk
 				BoolPatterns[i] = new AutoPatternBool(1, 1);
 			}
 
-			BoolPatterns[BoolPatterns.Length - 2] = new AutoPatternBool(1, 0);
-			BoolPatterns[BoolPatterns.Length - 1] = new AutoPatternBool(
+			BoolPatterns[^2] = new AutoPatternBool(1, 0);
+			BoolPatterns[^1] = new AutoPatternBool(
 				Config.AutofireOn, Config.AutofireOff);
 
 			for (int i = fStart; i < AxisPatterns.Length - 2; i++)
@@ -459,22 +458,15 @@ namespace BizHawk.Client.EmuHawk
 				AxisPatterns[i] = new AutoPatternAxis(new[] { 1 });
 			}
 
-			AxisPatterns[AxisPatterns.Length - 2] = new AutoPatternAxis(new[] { 1 });
-			AxisPatterns[AxisPatterns.Length - 1] = new AutoPatternAxis(1, Config.AutofireOn, 0, Config.AutofireOff);
+			AxisPatterns[^2] = new AutoPatternAxis(new[] { 1 });
+			AxisPatterns[^1] = new AutoPatternAxis(1, Config.AutofireOn, 0, Config.AutofireOff);
 
 			SetUpToolStripColumns();
 		}
 
-		public void AddColumn(string columnName, string columnText, int columnWidth, ColumnType columnType = ColumnType.Boolean)
-		{
-			TasView.AllColumns.Add(new RollColumn
-			{
-				Name = columnName,
-				Text = columnText,
-				UnscaledWidth = columnWidth,
-				Type = columnType
-			});
-		}
+		/// <remarks>for Lua</remarks>
+		public void AddColumn(string name, string text, int widthUnscaled)
+			=> TasView.AllColumns.Add(new(name: name, widthUnscaled: widthUnscaled, type: ColumnType.Text, text: text));
 
 		public void LoadBranchByIndex(int index) => BookMarkControl.LoadBranchExternal(index);
 		public void ClearFramesExternal() => ClearFramesMenuItem_Click(null, null);
@@ -707,14 +699,31 @@ namespace BizHawk.Client.EmuHawk
 			loadZone.PlaceZone(CurrentTasMovie, Config);
 		}
 
-		private void TastudioPlayMode()
+		private void TastudioToggleReadOnly()
 		{
-			TasPlaybackBox.RecordingMode = false;
+			TasPlaybackBox.RecordingMode ^= true;
+			WasRecording = TasPlaybackBox.RecordingMode; // hard reset at manual click and hotkey
 		}
 
-		private void TastudioRecordMode()
+		private void TastudioPlayMode(bool resetWasRecording = false)
+		{
+			TasPlaybackBox.RecordingMode = false;
+
+			// once user started editing, rec mode is unsafe
+			if (resetWasRecording)
+			{
+				WasRecording = TasPlaybackBox.RecordingMode;
+			}
+		}
+
+		private void TastudioRecordMode(bool resetWasRecording = false)
 		{
 			TasPlaybackBox.RecordingMode = true;
+
+			if (resetWasRecording)
+			{
+				WasRecording = TasPlaybackBox.RecordingMode;
+			}
 		}
 
 		private void TastudioStopMovie()
@@ -1018,6 +1027,7 @@ namespace BizHawk.Client.EmuHawk
 
 			if (_triggerAutoRestore)
 			{
+				TastudioPlayMode(true); // once user started editing, rec mode is unsafe
 				DoAutoRestore();
 
 				_triggerAutoRestore = false;

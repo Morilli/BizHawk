@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using BizHawk.BizInvoke;
 using BizHawk.Common;
 using BizHawk.Client.Common;
+using BizHawk.Common.StringExtensions;
 
 namespace BizHawk.Client.EmuHawk
 {
@@ -32,7 +33,7 @@ namespace BizHawk.Client.EmuHawk
 			_resolver = new("RA_Integration-x64.dll", hasLimitedLifetime: true);
 			_RA = BizInvoker.GetInvoker<RAInterface>(_resolver, DummyMonitor.Singleton, CallingConventionAdapters.Native);
 			_version = new(Marshal.PtrToStringAnsi(_RA.IntegrationVersion())!);
-			Console.WriteLine($"Loaded RetroAchievements v{_version}");
+			Console.WriteLine($"Loaded RAIntegration v{_version}");
 		}
 
 		private static void DetachDll()
@@ -46,7 +47,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private static bool DownloadDll(string url)
 		{
-			if (url.StartsWith("http:"))
+			if (url.StartsWithOrdinal("http:"))
 			{
 				// force https
 				url = url.Replace("http:", "https:");
@@ -57,7 +58,7 @@ namespace BizHawk.Client.EmuHawk
 			return downloadForm.DownloadSucceeded();
 		}
 
-		public static bool CheckUpdateRA(IMainFormForRetroAchievements mainForm)
+		public static bool CheckUpdateRA(IDialogParent dialogParent)
 		{
 			try
 			{
@@ -70,8 +71,7 @@ namespace BizHawk.Client.EmuHawk
 
 					if (_version < minVer)
 					{
-						if (!mainForm.ShowMessageBox2(
-								owner: null,
+						if (!dialogParent.ModalMessageBox2(
 								text:
 								"An update is required to use RetroAchievements. Do you want to download the update now?",
 								caption: "Update",
@@ -85,8 +85,7 @@ namespace BizHawk.Client.EmuHawk
 
 					if (_version >= lastestVer) return true;
 
-					if (!mainForm.ShowMessageBox2(
-							owner: null,
+					if (!dialogParent.ModalMessageBox2(
 							text:
 							"An optional update is available for RetroAchievements. Do you want to download the update now?",
 							caption: "Update",
@@ -99,8 +98,7 @@ namespace BizHawk.Client.EmuHawk
 					return true; // even if this fails, should be OK to use the old dll
 				}
 
-				mainForm.ShowMessageBox(
-					owner: null,
+				dialogParent.ModalMessageBox(
 					text: "Failed to fetch update information, cannot start RetroAchievements.",
 					caption: "Error",
 					icon: EMsgBoxIcon.Error);
@@ -110,8 +108,7 @@ namespace BizHawk.Client.EmuHawk
 			catch (Exception ex)
 			{
 				// is this needed?
-				mainForm.ShowMessageBox(
-					owner: null,
+				dialogParent.ModalMessageBox(
 					text: $"Exception {ex.Message} occurred when fetching update information, cannot start RetroAchievements.",
 					caption: "Error",
 					icon: EMsgBoxIcon.Error);

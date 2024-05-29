@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-using BizHawk.Bizware.BizwareGL;
+using BizHawk.Bizware.Graphics;
 using BizHawk.Common;
 using BizHawk.Common.PathExtensions;
 using BizHawk.Emulation.Common;
@@ -19,27 +19,31 @@ namespace BizHawk.Client.Common
 
 		/// <remarks>
 		/// <c>AppliesTo[0]</c> is used as the group label, and
-		/// <c>Config.PreferredCores[AppliesTo[0]]</c> (lookup on global <see cref="Config"/> instance) determines the currently selected option.
-		/// The tuples' order determines the order of menu items.
+		/// <c>Config.PreferredCores[AppliesTo[0]]</c> (lookup on global <see cref="Config"/> instance) determines which option is shown as checked.<br/>
+		/// The order within submenus and the order of the submenus themselves are determined by the declaration order here.
 		/// </remarks>
 		public static readonly IReadOnlyList<(string[] AppliesTo, string[] CoreNames)> CorePickerUIData = new List<(string[], string[])>
 		{
-			(new[] { VSystemID.Raw.NES },
-				new[] { CoreNames.QuickNes, CoreNames.NesHawk, CoreNames.SubNesHawk }),
-			(new[] { VSystemID.Raw.SNES },
-				new[] { CoreNames.Faust, CoreNames.Snes9X, CoreNames.Bsnes, CoreNames.Bsnes115, CoreNames.SubBsnes115 }),
-			(new[] { VSystemID.Raw.N64 },
-				new[] { CoreNames.Mupen64Plus, CoreNames.Ares64 }),
 			(new[] { VSystemID.Raw.GB, VSystemID.Raw.GBC, VSystemID.Raw.SGB },
 				new[] { CoreNames.Gambatte, CoreNames.Sameboy, CoreNames.GbHawk, CoreNames.SubGbHawk, CoreNames.Bsnes, CoreNames.Bsnes115, CoreNames.SubBsnes115 }),
 			(new[] { VSystemID.Raw.GBL },
 				new[] { CoreNames.GambatteLink, CoreNames.GBHawkLink, CoreNames.GBHawkLink3x, CoreNames.GBHawkLink4x }),
+			(new[] { VSystemID.Raw.GEN },
+				new[] { CoreNames.Gpgx, CoreNames.PicoDrive }),
+			(new[] { VSystemID.Raw.N64 },
+				new[] { CoreNames.Mupen64Plus, CoreNames.Ares64 }),
+			(new[] { VSystemID.Raw.NES },
+				new[] { CoreNames.QuickNes, CoreNames.NesHawk, CoreNames.SubNesHawk }),
 			(new[] { VSystemID.Raw.PCE, VSystemID.Raw.PCECD, VSystemID.Raw.SGX, VSystemID.Raw.SGXCD },
 				new[] { CoreNames.TurboNyma, CoreNames.HyperNyma, CoreNames.PceHawk }),
 			(new[] { VSystemID.Raw.PSX },
-				new[] { CoreNames.Octoshock, CoreNames.Nymashock }),
+				new[] { CoreNames.Nymashock, CoreNames.Octoshock }),
+			(new[] { VSystemID.Raw.SMS, VSystemID.Raw.GG, VSystemID.Raw.SG },
+				new[] { CoreNames.Gpgx, CoreNames.SMSHawk }),
+			(new[] { VSystemID.Raw.SNES },
+				new[] { CoreNames.Snes9X, CoreNames.Bsnes115, CoreNames.SubBsnes115, CoreNames.Faust, CoreNames.Bsnes }),
 			(new[] { VSystemID.Raw.TI83 },
-				new[] { CoreNames.TI83Hawk, CoreNames.Emu83 }),
+				new[] { CoreNames.Emu83, CoreNames.TI83Hawk }),
 		};
 
 		public Config()
@@ -133,6 +137,8 @@ namespace BizHawk.Client.Common
 		public string UpdateIgnoreVersion { get; set; } = "";
 		public bool SkipOutdatedOsCheck { get; set; }
 
+		public bool SkipSuperuserPrivsCheck { get; set; }
+
 		/// <summary>
 		/// Makes a .bak file before any saveram-writing operation (could be extended to make timestamped backups)
 		/// </summary>
@@ -178,9 +184,9 @@ namespace BizHawk.Client.Common
 		public bool VSync { get; set; }
 
 		/// <summary>
-		/// Tries to use an alternate vsync mechanism, for video cards that just can't do it right
+		/// Allows non-vsync'd video to tear, this is needed for VFR monitors reportedly
 		/// </summary>
-		public bool DispAlternateVsync { get; set; }
+		public bool DispAllowTearing { get; set; }
 
 		// Display options
 		public bool DisplayFps { get; set; }
@@ -212,7 +218,7 @@ namespace BizHawk.Client.Common
 
 		public int DispPrescale { get; set; } = 1;
 
-		public EDispMethod DispMethod { get; set; } = HostCapabilityDetector.HasDirectX ? EDispMethod.SlimDX9 : EDispMethod.OpenGL;
+		public EDispMethod DispMethod { get; set; } = HostCapabilityDetector.HasD3D11 && !OSTailoredCode.IsWine ? EDispMethod.D3D11 : EDispMethod.OpenGL;
 
 		public int DispChromeFrameWindowed { get; set; } = 2;
 		public bool DispChromeStatusBarWindowed { get; set; } = true;
@@ -240,13 +246,58 @@ namespace BizHawk.Client.Common
 		public int DispCropBottom { get; set; } = 0;
 
 		// Sound options
-		public ESoundOutputMethod SoundOutputMethod { get; set; } = HostCapabilityDetector.HasDirectX ? ESoundOutputMethod.DirectSound : ESoundOutputMethod.OpenAL;
+		public ESoundOutputMethod SoundOutputMethod { get; set; } = HostCapabilityDetector.HasXAudio2 ? ESoundOutputMethod.XAudio2 : ESoundOutputMethod.OpenAL;
+
+		/// <value>iff <see langword="false"/>, cores may skip processing audio</value>
+		/// <seealso cref="SoundEnabledNormal"/>
+		/// <seealso cref="SoundEnabledRWFF"/>
+		/// <seealso cref="MuteFrameAdvance"/>
 		public bool SoundEnabled { get; set; } = true;
+
+		/// <value>whether to pass audio through to the host while emulating to normal throttle</value>
+		/// <remarks>separate from <see cref="SoundVolume"/> so that the config UI can "remember" the previous value</remarks>
+		/// <seealso cref="SoundVolume"/>
+		/// <seealso cref="SoundEnabled"/>
+		/// <seealso cref="SoundEnabledRWFF"/>
+		/// <seealso cref="MuteFrameAdvance"/>
 		public bool SoundEnabledNormal { get; set; } = true;
+
+		/// <value>whether to pass audio through to the host while rewinding or fast-forwarding</value>
+		/// <remarks>separate from <see cref="SoundVolumeRWFF"/> so that the config UI can "remember" the previous value</remarks>
+		/// <seealso cref="SoundVolumeRWFF"/>
+		/// <seealso cref="SoundEnabled"/>
+		/// <seealso cref="SoundEnabledNormal"/>
+		/// <seealso cref="MuteFrameAdvance"/>
 		public bool SoundEnabledRWFF { get; set; } = true;
+
+		/// <value>whether to pass audio through to the host when doing a frame advance while paused</value>
+		/// <remarks>
+		/// sets sample amplitude multiplier to 0x iff <see langword="true"/>,
+		/// otherwise the main <see cref="SoundVolume"/> has effect
+		/// </remarks>
+		/// <seealso cref="SoundEnabled"/>
+		/// <seealso cref="SoundEnabledNormal"/>
+		/// <seealso cref="SoundEnabledRWFF"/>
 		public bool MuteFrameAdvance { get; set; } = true;
-		public int SoundVolume { get; set; } = 100; // Range 0-100
-		public int SoundVolumeRWFF { get; set; } = 50; // Range 0-100
+
+		/// <value>
+		/// volume level; interpreted as a percentage (i.e. scaled down to 0.0..1.0)
+		/// and passed to the platform audio implementation, which should use it as a simple multiplier on each sample;<br/>
+		/// so <c>0</c> is scale each sample by 0x (mute),<c>100</c> is scale each sample by 1x (preserve full volume),
+		/// <c>50</c> is scale each sample by 0.5x (≈ -3 dB), and <c>25</c> is scale each sample by 0.25x (≈ -6 dB)
+		/// </value>
+		/// <seealso cref="SoundVolumeRWFF"/>
+		/// <seealso cref="SoundEnabledNormal"/>
+		public int SoundVolume { get; set; } = 100;
+
+		/// <value>
+		/// when rewinding or fast-forwarding, the sample amplitude multiplier is <i>multiplied by this value</i>
+		/// (after conversion from percentage), or in other words, <see cref="SoundVolume"/> remains in effect
+		/// </value>
+		/// <seealso cref="SoundVolume"/>
+		/// <seealso cref="SoundEnabledRWFF"/>
+		public int SoundVolumeRWFF { get; set; } = 50;
+
 		public bool SoundThrottle { get; set; }
 		public string SoundDevice { get; set; } = "";
 		public int SoundBufferSizeMs { get; set; } = 100;
@@ -339,8 +390,6 @@ namespace BizHawk.Client.Common
 		// ReSharper disable once UnusedMember.Global
 		public string LastWrittenFromDetailed { get; set; } = VersionInfo.GetEmuVersion();
 
-		public EHostInputMethod HostInputMethod { get; set; } = HostCapabilityDetector.HasDirectX ? EHostInputMethod.DirectInput : EHostInputMethod.OpenTK;
-
 		public bool UseStaticWindowTitles { get; set; }
 
 		public List<string> ModifierKeys { get; set; } = new();
@@ -354,7 +403,7 @@ namespace BizHawk.Client.Common
 		public int OSDMessageDuration { get; set; } = 2;
 
 		public Queue<string> RecentCores { get; set; } = new();
-		
+
 		public Dictionary<string, string> TrustedExtTools { get; set; } = new();
 
 		// RetroAchievements settings

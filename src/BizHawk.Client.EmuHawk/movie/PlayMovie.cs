@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +13,7 @@ using System.Windows.Forms;
 using BizHawk.Client.Common;
 using BizHawk.Common;
 using BizHawk.Common.CollectionExtensions;
+using BizHawk.Common.StringExtensions;
 using BizHawk.Emulation.Common;
 using BizHawk.Emulation.Cores.Arcades.MAME;
 
@@ -56,6 +60,7 @@ namespace BizHawk.Client.EmuHawk
 			Scan.Image = Properties.Resources.Scan;
 			editToolStripMenuItem.Image = Properties.Resources.Cut;
 			MovieView.RetrieveVirtualItem += MovieView_QueryItemText;
+			MovieView.ShowItemToolTips = true;
 			MovieView.VirtualMode = true;
 			_sortReverse = false;
 			_sortedCol = "";
@@ -75,13 +80,21 @@ namespace BizHawk.Client.EmuHawk
 			TurboCheckbox.Checked = _config.TurboSeek;
 		}
 
+		private static string MovieTimeLengthStr(TimeSpan movieLength)
+			=> movieLength.ToString(movieLength.Days == 0 ? @"hh\:mm\:ss\.fff" : @"dd\:hh\:mm\:ss\.fff", DateTimeFormatInfo.InvariantInfo);
+
 		private void MovieView_QueryItemText(object sender, RetrieveVirtualItemEventArgs e)
 		{
 			var entry = _movieList[e.ItemIndex];
-			e.Item = new ListViewItem(entry.Filename);
+			// don't display the common movie path prefix in the dialog
+			string displayedPath = entry.Filename.RemovePrefix(_config.PathEntries.MovieAbsolutePath() + Path.DirectorySeparatorChar);
+			e.Item = new ListViewItem(displayedPath)
+			{
+				ToolTipText = entry.Filename
+			};
 			e.Item.SubItems.Add(entry.SystemID);
 			e.Item.SubItems.Add(entry.GameName);
-			e.Item.SubItems.Add(entry.TimeLength.ToString(@"hh\:mm\:ss\.fff"));
+			e.Item.SubItems.Add(MovieTimeLengthStr(entry.TimeLength));
 		}
 
 		private void Run()
@@ -90,7 +103,6 @@ namespace BizHawk.Client.EmuHawk
 			if (indices.Count > 0) // Import file if necessary
 			{
 				var movie = _movieSession.Get(_movieList[MovieView.SelectedIndices[0]].Filename);
-				movie.Load();
 				_mainForm.StartNewMovie(movie, false);
 			}
 		}
@@ -102,7 +114,7 @@ namespace BizHawk.Client.EmuHawk
 			{
 				return null;
 			}
-				
+
 			var movie = LoadMovieInfo(file, force);
 			if (movie == null)
 			{
@@ -152,7 +164,7 @@ namespace BizHawk.Client.EmuHawk
 
 				// Don't do this from browse
 				if (movie.Hash == _game.Hash
-					|| _config.PlayMovieMatchHash == false || force)
+					|| !_config.PlayMovieMatchHash || force)
 				{
 					return movie;
 				}
@@ -208,7 +220,7 @@ namespace BizHawk.Client.EmuHawk
 			{
 				foreach (var ext in MovieService.MovieExtensions)
 				{
-					if ($".{ext}".Equals(Path.GetExtension(_movieList[indices[i]].Filename), StringComparison.InvariantCultureIgnoreCase))
+					if ($".{ext}".Equals(Path.GetExtension(_movieList[indices[i]].Filename), StringComparison.OrdinalIgnoreCase))
 					{
 						tas.Add(i);
 					}
@@ -255,7 +267,7 @@ namespace BizHawk.Client.EmuHawk
 			while (dpTodo.Count > 0)
 			{
 				string dp = dpTodo.Dequeue();
-				
+
 				// enqueue subdirectories if appropriate
 				if (_config.PlayMovieIncludeSubDir)
 				{
@@ -327,7 +339,7 @@ namespace BizHawk.Client.EmuHawk
 							.Append(_movieList[index].Filename).Append('\t')
 							.Append(_movieList[index].SystemID).Append('\t')
 							.Append(_movieList[index].GameName).Append('\t')
-							.Append(_movieList[index].TimeLength.ToString(@"hh\:mm\:ss\.fff"))
+							.Append(MovieTimeLengthStr(_movieList[index].TimeLength))
 							.AppendLine();
 					}
 
@@ -447,10 +459,17 @@ namespace BizHawk.Client.EmuHawk
 
 		private void EditMenuItem_Click(object sender, EventArgs e)
 		{
-			foreach (var movie in MovieView.SelectedIndices.Cast<int>()
-				.Select(index => _movieList[index]))
+			try
 			{
-				System.Diagnostics.Process.Start(movie.Filename);
+				foreach (var movie in MovieView.SelectedIndices.Cast<int>().Select(index => _movieList[index]))
+				{
+					Process.Start(movie.Filename);
+				}
+			}
+			catch (Win32Exception ex) // "Access denied" when cancelling "Open With" dialog on Linux
+			{
+				Console.WriteLine(ex);
+				// and stop trying to open files
 			}
 		}
 
@@ -576,15 +595,11 @@ namespace BizHawk.Client.EmuHawk
 			_config.TurboSeek = TurboCheckbox.Checked;
 			Run();
 			_movieSession.ReadOnly = ReadOnlyCheckBox.Checked;
-
-			if (StopOnFrameCheckbox.Checked &&
-				(StopOnFrameTextBox.ToRawInt().HasValue || LastFrameCheckbox.Checked))
+			if (StopOnFrameCheckbox.Checked)
 			{
-				_mainForm.PauseOnFrame = LastFrameCheckbox.Checked
-					? _movieSession.Movie.InputLogLength
-					: StopOnFrameTextBox.ToRawInt();
+				if (LastFrameCheckbox.Checked) _mainForm.PauseOnFrame = _movieSession.Movie.InputLogLength;
+				else if (StopOnFrameTextBox.ToRawInt() is int i) _mainForm.PauseOnFrame = i;
 			}
-
 			Close();
 		}
 

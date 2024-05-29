@@ -7,7 +7,7 @@ using System.Threading;
 using System.Windows.Forms;
 
 using BizHawk.Bizware.BizwareGL;
-using BizHawk.Bizware.OpenTK3;
+using BizHawk.Bizware.Graphics;
 using BizHawk.Client.EmuHawk;
 
 namespace BizHawk.Bizware.Test
@@ -22,7 +22,7 @@ namespace BizHawk.Bizware.Test
 				{
 					var firstAsm = Array.Find(AppDomain.CurrentDomain.GetAssemblies(), asm => asm.FullName == args.Name);
 					if (firstAsm is not null) return firstAsm;
-					var guessFilename = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "dll", $"{new AssemblyName(args.Name).Name}.dll");
+					var guessFilename = Path.Combine(AppContext.BaseDirectory, "dll", $"{new AssemblyName(args.Name).Name}.dll");
 					return File.Exists(guessFilename) ? Assembly.LoadFile(guessFilename) : null;
 				}
 			};
@@ -46,7 +46,7 @@ namespace BizHawk.Bizware.Test
 
 		private static void RunTest()
 		{
-			IGL igl = new IGL_TK(2, 0, false);
+			IGL igl = new IGL_OpenGL(2, 0, false);
 			ArtManager am = new(igl);
 			var testArts = typeof(Program).Assembly.GetManifestResourceNames().Where(s => s.Contains("flame"))
 				.Select(s => am.LoadArt(ReflectionCache.EmbeddedResourceStream(s.Substring(21)))) // ReflectionCache adds back the prefix

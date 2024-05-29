@@ -71,11 +71,13 @@ namespace BizHawk.Client.EmuHawk
 			["Coleco"] = "Colecovision",
 			["GBA"] = "GBA",
 			["NDS"] = "Nintendo DS",
+			["3DS"] = "Nintendo 3DS",
 			["TI83"] = "TI-83",
 			["INTV"] = "Intellivision",
 			["C64"] = "C64",
 			["GEN"] = "Genesis",
 			["SMS"] = "Sega Master System",
+			["GG"] = "Sega Game Gear",
 			["PSX"] = "PlayStation",
 			["Jaguar"] = "Jaguar",
 			["Lynx"] = "Lynx",
@@ -112,7 +114,7 @@ namespace BizHawk.Client.EmuHawk
 			{
 				var lva = (ListViewItem)a;
 				var lvb = (ListViewItem)b;
-				return Sign * string.Compare(lva.SubItems[Column].Text, lvb.SubItems[Column].Text);
+				return Sign * string.CompareOrdinal(lva.SubItems[Column].Text, lvb.SubItems[Column].Text);
 			}
 		}
 
@@ -182,7 +184,7 @@ namespace BizHawk.Client.EmuHawk
 				lvFirmwares.Groups.Add(
 					key: sysID,
 					headerText: SystemGroupNames.TryGetValue(sysID, out var name) ? name : "FIX ME (FirmwaresConfig.cs)");
-				return lvFirmwares.Groups[lvFirmwares.Groups.Count - 1];
+				return lvFirmwares.Groups[^1];
 			}
 
 			// we'll use this font for displaying the hash, so they don't look all jagged in a long list
@@ -589,7 +591,7 @@ namespace BizHawk.Client.EmuHawk
 				}
 
 				string target = Path.Combine(basePath, fi.Name);
-				if (new FileInfo(target).Exists)
+				if (File.Exists(target))
 				{
 					// compare the files, if they're the same. don't do anything
 					if (File.ReadAllBytes(target).SequenceEqual(File.ReadAllBytes(f)))

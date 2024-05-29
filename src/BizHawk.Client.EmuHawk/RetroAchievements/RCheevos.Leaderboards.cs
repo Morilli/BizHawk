@@ -11,7 +11,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private sealed class LboardTriggerRequest : RCheevoHttpRequest
 		{
-			private LibRCheevos.rc_api_submit_lboard_entry_request_t _apiParams;
+			private readonly LibRCheevos.rc_api_submit_lboard_entry_request_t _apiParams;
 
 			protected override void ResponseCallback(byte[] serv_resp)
 			{
@@ -25,11 +25,11 @@ namespace BizHawk.Client.EmuHawk
 
 			public override void DoRequest()
 			{
-				var apiParamsResult = _lib.rc_api_init_submit_lboard_entry_request(out var api_req, ref _apiParams);
+				var apiParamsResult = _lib.rc_api_init_submit_lboard_entry_request(out var api_req, in _apiParams);
 				InternalDoRequest(apiParamsResult, ref api_req);
 			}
 
-			public LboardTriggerRequest(string username, string api_token, int id, int value, string hash)
+			public LboardTriggerRequest(string username, string api_token, uint id, int value, string hash)
 			{
 				_apiParams = new(username, api_token, id, value, hash);
 			}
@@ -40,7 +40,7 @@ namespace BizHawk.Client.EmuHawk
 
 		public class LBoard
 		{
-			public int ID { get; }
+			public uint ID { get; }
 			public int Format { get; }
 			public string Title { get; }
 			public string Description { get; }

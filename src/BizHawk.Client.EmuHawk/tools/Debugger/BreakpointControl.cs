@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using BizHawk.Client.Common;
 using BizHawk.Client.EmuHawk.Properties;
 using BizHawk.Common.NumberExtensions;
+using BizHawk.Common.StringExtensions;
 using BizHawk.Emulation.Common;
 
 namespace BizHawk.Client.EmuHawk
@@ -64,7 +65,7 @@ namespace BizHawk.Client.EmuHawk
 		{
 			BreakpointCallback(addr, value, flags);
 
-			var seekBreakpoint = _breakpoints.FirstOrDefault(x => x.Name.StartsWith(SeekName));
+			var seekBreakpoint = _breakpoints.FirstOrDefault(x => x.Name.StartsWithOrdinal(SeekName));
 
 			if (seekBreakpoint != null)
 			{
@@ -93,12 +94,11 @@ namespace BizHawk.Client.EmuHawk
 			{
 				foreach (var callback in Mcs)
 				{
-					if (!_breakpoints.Any(b =>
-						b.Type == callback.Type &&
-						b.Address == callback.Address &&
-						b.AddressMask == callback.AddressMask &&
-						b.Name == callback.Name &&
-						b.Callback == callback.Callback))
+					if (!_breakpoints.Any(b => b.Type == callback.Type
+						&& b.Address == callback.Address
+						&& b.AddressMask == callback.AddressMask
+						&& b.Name == callback.Name
+						&& b.Callback == callback.Callback))
 					{
 						_breakpoints.Add(new Breakpoint(Core, callback));
 					}
@@ -166,7 +166,7 @@ namespace BizHawk.Client.EmuHawk
 
 		public void RemoveCurrentSeek()
 		{
-			var seekBreakpoint = _breakpoints.FirstOrDefault(x => x.Name.StartsWith(SeekName));
+			var seekBreakpoint = _breakpoints.FirstOrDefault(x => x.Name.StartsWithOrdinal(SeekName));
 
 			if (seekBreakpoint != null)
 			{
