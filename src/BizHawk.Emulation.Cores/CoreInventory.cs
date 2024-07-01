@@ -206,9 +206,9 @@ namespace BizHawk.Emulation.Cores
 		UserPreference = -200,
 
 		/// <summary>
-		/// A very good core that should be preferred over normal cores.  Don't use this?
+		/// The default core for a system when no other preferences exist. Must be set once per system
 		/// </summary>
-		High = -100,
+		DefaultPreference = -100,
 
 		/// <summary>
 		/// Most cores should use this
