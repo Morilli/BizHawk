@@ -1,4 +1,4 @@
-// #define DEBUG_OPENGL
+#define DEBUG_OPENGL
 
 using System;
 
@@ -41,7 +41,9 @@ namespace BizHawk.Bizware.Graphics
 #if DEBUG_OPENGL
 		private static readonly DebugProc _debugProc = DebugCallback;
 		private static void DebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, IntPtr message, IntPtr userParam)
-			=> Console.WriteLine($"{source} {type} {severity}: {Marshal.PtrToStringAnsi(message, length)}");
+		{
+			Console.WriteLine($"{source} {type} {severity}: {Marshal.PtrToStringAnsi(message, length)}");
+		}
 #endif
 
 		private IntPtr _sdlWindow;
@@ -59,6 +61,9 @@ namespace BizHawk.Bizware.Graphics
 			{
 				throw new($"Could not set GL attributes! SDL Error: {SDL_GetError()}");
 			}
+
+			SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_BUFFER_SIZE, 32);
+			SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_DEPTH_SIZE, 16);
 
 			if (SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, majorVersion) != 0)
 			{

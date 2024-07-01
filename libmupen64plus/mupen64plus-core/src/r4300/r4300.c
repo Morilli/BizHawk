@@ -200,7 +200,7 @@ Used by dynarec only, check should be unnecessary
     precomp_block *blk = actual;
     precomp_instr *inst = PC;
     jump_to((PC-1)->addr+4);
-    
+
 /*#ifdef DBG
             if (g_DebuggerActive) update_debugger(PC->addr);
 #endif
@@ -214,7 +214,7 @@ Used by dynarec only, check should be unnecessary
       }
     else
       PC->ops();
-    
+
     if (r4300emu == CORE_DYNAREC) dyna_jump();
      }
 }
@@ -475,7 +475,7 @@ const cpu_instruction_table cached_interpreter_table = {
 
    DIV_S,
    DIV_D,
-   
+
    ABS_S,
    ABS_D,
 
@@ -596,7 +596,7 @@ void jump_to_func(void)
     init_block(blocks[addr>>12]);
      }
    PC=actual->block+((addr-actual->start)>>2);
-   
+
    if (r4300emu == CORE_DYNAREC) dyna_jump();
 }
 #undef addr
@@ -816,7 +816,7 @@ void r4300_reset_hard(void)
     EPC = 0xFFFFFFFF;
     BadVAddr = 0xFFFFFFFF;
     ErrorEPC = 0xFFFFFFFF;
-   
+
     rounding_mode = 0x33F;
 }
 
@@ -833,14 +833,14 @@ void r4300_reset_soft(void)
 
    // the following values are extracted from the pj64 source code
    // thanks to Zilmar and Jabo
-   
+
    reg[6] = 0xFFFFFFFFA4001F0CLL;
    reg[7] = 0xFFFFFFFFA4001F08LL;
    reg[8] = 0x00000000000000C0LL;
    reg[10]= 0x0000000000000040LL;
    reg[11]= 0xFFFFFFFFA4000040LL;
    reg[29]= 0xFFFFFFFFA4001FF0LL;
-   
+
     // figure out which ROM type is loaded
    for (i = 0x40/4; i < (0x1000/4); i++)
      CRC += SP_DMEM[i];
@@ -1150,8 +1150,8 @@ EXPORT void CALL GetRegisters(unsigned char * dest)
 
 	memcpy(dest, reg_cop0, 4 * 32);
 	dest += 4 * 32;
-	
+
 	memcpy(dest, reg_cop1_fgr_64, 8 * 32);
 	dest += 8 * 32;
-	
+
 }

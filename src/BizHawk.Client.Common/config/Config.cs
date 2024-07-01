@@ -43,7 +43,7 @@ namespace BizHawk.Client.Common
 				[ CoreNames.Nymashock, CoreNames.Octoshock ]),
 			([ VSystemID.Raw.SMS, VSystemID.Raw.GG, VSystemID.Raw.SG ],
 				[ CoreNames.Gpgx, CoreNames.SMSHawk ]),
-			([ VSystemID.Raw.SNES ],
+			([ VSystemID.Raw.SNES, VSystemID.Raw.Satellaview ],
 				[ CoreNames.Snes9X, CoreNames.Bsnes115, CoreNames.SubBsnes115, CoreNames.Faust, CoreNames.Bsnes ]),
 			([ VSystemID.Raw.TI83 ],
 				[ CoreNames.Emu83, CoreNames.TI83Hawk ]),

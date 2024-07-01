@@ -1,0 +1,299 @@
+diff --git a/src/BizHawk.Bizware.Graphics/D3D11/D3D11Resources.cs b/src/BizHawk.Bizware.Graphics/D3D11/D3D11Resources.cs
+index f9fb4e43f..97636bfa1 100644
+--- a/src/BizHawk.Bizware.Graphics/D3D11/D3D11Resources.cs
++++ b/src/BizHawk.Bizware.Graphics/D3D11/D3D11Resources.cs
+@@ -1,6 +1,6 @@
+ using System;
+ using System.Collections.Generic;
+-
++using System.Diagnostics;
+ using Vortice.Direct3D;
+ using Vortice.Direct3D11;
+ using Vortice.DXGI;
+@@ -37,6 +37,8 @@ namespace BizHawk.Bizware.Graphics
+ 
+ 		public void CreateResources()
+ 		{
++			Stopwatch timer = Stopwatch.StartNew();
++			Console.WriteLine($"First line in CreateResources {timer.Elapsed}");
+ 			try
+ 			{
+ #if false
+@@ -54,6 +56,7 @@ namespace BizHawk.Bizware.Graphics
+ 				{
+ 					creationFlags &= ~DeviceCreationFlags.Singlethreaded;
+ 				}
++				Console.WriteLine($"Immediately after D3D11GLInterop.IsAvailable {timer.Elapsed}");
+ 
+ 				D3D11.D3D11CreateDevice(
+ 					adapter: null,
+@@ -62,6 +65,7 @@ namespace BizHawk.Bizware.Graphics
+ 					null!, // this is safe to be null
+ 					out Device,
+ 					out Context).CheckError();
++				Console.WriteLine($"Immediately after creating device {timer.Elapsed}");
+ 
+ 				using var dxgiDevice = Device.QueryInterface<IDXGIDevice1>();
+ 				dxgiDevice.MaximumFrameLatency = 1;
+@@ -118,10 +122,13 @@ namespace BizHawk.Bizware.Graphics
+ 
+ 				RasterizerState = Device.CreateRasterizerState(rd);
+ 
++				Console.WriteLine($"Immediately before creating textures {timer.Elapsed}");
+ 				foreach (var tex2d in Textures)
+ 				{
+ 					tex2d.CreateTexture();
+ 				}
++
++				Console.WriteLine($"Immediately after creating textures {timer.Elapsed}");
+ 			}
+ 			catch
+ 			{
+diff --git a/src/BizHawk.Bizware.Graphics/D3D11/IGL_D3D11.cs b/src/BizHawk.Bizware.Graphics/D3D11/IGL_D3D11.cs
+index 2eb2559ea..52a8f6944 100644
+--- a/src/BizHawk.Bizware.Graphics/D3D11/IGL_D3D11.cs
++++ b/src/BizHawk.Bizware.Graphics/D3D11/IGL_D3D11.cs
+@@ -1,4 +1,5 @@
+ using System;
++using System.Diagnostics;
+ using System.Drawing;
+ using System.Numerics;
+ 
+@@ -40,17 +41,22 @@ namespace BizHawk.Bizware.Graphics
+ 
+ 		public IGL_D3D11()
+ 		{
++			Stopwatch timer = Stopwatch.StartNew();
+ 			if (OSTailoredCode.IsUnixHost)
+ 			{
+ 				throw new NotSupportedException("D3D11 is Windows only");
+ 			}
+ 
++			Console.WriteLine($"Immediately before D3D11Resources {timer.Elapsed}");
+ 			_resources = new();
++			Console.WriteLine($"Immediately after D3D11Resources {timer.Elapsed}");
+ 			_resources.CreateResources();
++			Console.WriteLine($"Immediately after D3D11Resources.CreateResources {timer.Elapsed}");
+ 
+ 			if (D3D11GLInterop.IsAvailable)
+ 			{
+ 				_glInterop = new(_resources);
++				Console.WriteLine($"Immediately after creating glInterop {timer.Elapsed}");
+ 			}
+ 		}
+ 
+diff --git a/src/BizHawk.Client.Common/config/Config.cs b/src/BizHawk.Client.Common/config/Config.cs
+index b1d972188..3cdf6b8b6 100644
+--- a/src/BizHawk.Client.Common/config/Config.cs
++++ b/src/BizHawk.Client.Common/config/Config.cs
+@@ -67,6 +67,7 @@ namespace BizHawk.Client.Common
+ 				&& AllTrollersAnalog.Count == 0
+ 				&& AllTrollersFeedbacks.Count == 0)
+ 			{
++				Console.WriteLine($"First line in Config ctor {ConfigService.GlobalStopwatch.Elapsed}");
+ 				var cd = ConfigService.Load<DefaultControls>(ControlDefaultPath);
+ 				AllTrollers = cd.AllTrollers;
+ 				AllTrollersAutoFire = cd.AllTrollersAutoFire;
+diff --git a/src/BizHawk.Client.Common/config/ConfigService.cs b/src/BizHawk.Client.Common/config/ConfigService.cs
+index b3f39ec96..ac66e56e4 100644
+--- a/src/BizHawk.Client.Common/config/ConfigService.cs
++++ b/src/BizHawk.Client.Common/config/ConfigService.cs
+@@ -1,7 +1,7 @@
+ ﻿using System;
++using System.Diagnostics;
+ using System.IO;
+ using System.Reflection;
+-
+ using BizHawk.Common;
+ 
+ using Newtonsoft.Json;
+@@ -82,19 +82,24 @@ namespace BizHawk.Client.Common
+ 			return false;
+ 		}
+ 
++		public static Stopwatch GlobalStopwatch { get; } = new Stopwatch();
++
+ 		/// <exception cref="InvalidOperationException">internal error</exception>
+ 		public static T Load<T>(string filepath) where T : new()
+ 		{
+-			T config = default(T);
++			T config = default;
+ 
+ 			try
+ 			{
++				Console.WriteLine($"before config load {GlobalStopwatch.Elapsed}");
+ 				var file = new FileInfo(filepath);
+ 				if (file.Exists)
+ 				{
+ 					using var reader = file.OpenText();
+ 					var r = new JsonTextReader(reader);
+-					config = (T)Serializer.Deserialize(r, typeof(T));
++					Console.WriteLine($"immediate before deserialize {filepath} {GlobalStopwatch.Elapsed}");
++					config = Serializer.Deserialize<T>(r);
++					Console.WriteLine($"immediate after deserialize {filepath} {GlobalStopwatch.Elapsed}");
+ 				}
+ 			}
+ 			catch (Exception ex)
+@@ -102,7 +107,11 @@ namespace BizHawk.Client.Common
+ 				throw new InvalidOperationException("Config Error", ex);
+ 			}
+ 
+-			return config ?? new T();
++			Console.WriteLine($"immediate before config assignment {filepath} {GlobalStopwatch.Elapsed}");
++			config ??= new T();
++			Console.WriteLine($"immediate after config assignment {filepath} {GlobalStopwatch.Elapsed}");
++
++			return config;
+ 		}
+ 
+ 		public static void Save(string filepath, object config)
+diff --git a/src/BizHawk.Client.EmuHawk/CustomControls/InputRoll/InputRoll.cs b/src/BizHawk.Client.EmuHawk/CustomControls/InputRoll/InputRoll.cs
+index 950d1de21..9fe74487d 100644
+--- a/src/BizHawk.Client.EmuHawk/CustomControls/InputRoll/InputRoll.cs
++++ b/src/BizHawk.Client.EmuHawk/CustomControls/InputRoll/InputRoll.cs
+@@ -1596,11 +1596,18 @@ namespace BizHawk.Client.EmuHawk
+ 			_lastCell = CurrentCell;
+ 			CurrentCell = newCell;
+ 
++			Console.WriteLine($"CellChanged was called with newCell {newCell}");
++			Console.WriteLine($"previous cell {_lastCell}");
+ 			if (PointedCellChanged is not null
+ 				&& !(_lastCell?.Column == CurrentCell.Column && _lastCell?.RowIndex == CurrentCell.RowIndex)) //TODO isn't this just `Cell.==`? --yoshi
+ 			{
++				Console.WriteLine($"calling PointedCellChanged...");
+ 				PointedCellChanged(this, new CellEventArgs(_lastCell, CurrentCell));
+ 			}
++			else
++			{
++				// lol
++			}
+ 
+ 			if (CurrentCell?.Column != null && CurrentCell.RowIndex.HasValue)
+ 			{
+diff --git a/src/BizHawk.Client.EmuHawk/MainForm.cs b/src/BizHawk.Client.EmuHawk/MainForm.cs
+index 494e7f0f7..fe5976a56 100644
+--- a/src/BizHawk.Client.EmuHawk/MainForm.cs
++++ b/src/BizHawk.Client.EmuHawk/MainForm.cs
+@@ -409,6 +409,7 @@ namespace BizHawk.Client.EmuHawk
+ 			out IMovieSession movieSession,
+ 			out bool exitEarly)
+ 		{
++			Stopwatch timer = Stopwatch.StartNew();
+ 			movieSession = null;
+ 			exitEarly = false;
+ 
+@@ -474,8 +475,11 @@ namespace BizHawk.Client.EmuHawk
+ 			MouseMove += MainForm_MouseMove;
+ 
+ 			InitializeComponent();
++			Console.WriteLine($"Initializing mainform component took {timer.Elapsed}s.");
++			timer.Restart();
+ 			Icon = Properties.Resources.Logo;
+ 			SetImages();
++			Console.WriteLine($"Setting images took a further {timer.Elapsed}");
+ #if !DEBUG
+ 			ZXSpectrumExportSnapshotMenuItemMenuItem.Enabled = false;
+ 			ZXSpectrumExportSnapshotMenuItemMenuItem.Visible = false;
+diff --git a/src/BizHawk.Client.EmuHawk/Program.cs b/src/BizHawk.Client.EmuHawk/Program.cs
+index cee066121..e492cc269 100644
+--- a/src/BizHawk.Client.EmuHawk/Program.cs
++++ b/src/BizHawk.Client.EmuHawk/Program.cs
+@@ -87,6 +87,8 @@ namespace BizHawk.Client.EmuHawk
+ 		[STAThread]
+ 		private static int Main(string[] args)
+ 		{
++			ConfigService.GlobalStopwatch.Start();
++			Console.WriteLine($"first line in Main {ConfigService.GlobalStopwatch.Elapsed}");
+ 			var exitCode = SubMain(args);
+ 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+ 			{
+@@ -100,6 +102,7 @@ namespace BizHawk.Client.EmuHawk
+ 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+ 		private static int SubMain(string[] args)
+ 		{
++			Console.WriteLine($"First line in SubMain {ConfigService.GlobalStopwatch.Elapsed}");
+ 			// this check has to be done VERY early.  i stepped through a debug build with wrong .dll versions purposely used,
+ 			// and there was a TypeLoadException before the first line of SubMain was reached (some static ColorType init?)
+ 			var thisAsmVer = ReflectionCache.AsmVersion;
+@@ -160,6 +163,7 @@ namespace BizHawk.Client.EmuHawk
+ 
+ 			var configPath = cliFlags.cmdConfigFile ?? Path.Combine(PathUtils.ExeDirectoryPath, "config.ini");
+ 
++			Console.WriteLine($"Before config... {ConfigService.GlobalStopwatch.Elapsed}");
+ 			Config initialConfig;
+ 			try
+ 			{
+@@ -167,7 +171,10 @@ namespace BizHawk.Client.EmuHawk
+ 				{
+ 					new MsgBox(msg, "Mismatched version in config file", MessageBoxIcon.Warning).ShowDialog();
+ 				}
++
++				Console.WriteLine($"immediately before ConfigService.Load {ConfigService.GlobalStopwatch.Elapsed}");
+ 				initialConfig = ConfigService.Load<Config>(configPath);
++				Console.WriteLine($"immediately after ConfigService.Load {ConfigService.GlobalStopwatch.Elapsed}");
+ 			}
+ 			catch (Exception e)
+ 			{
+@@ -183,6 +190,7 @@ namespace BizHawk.Client.EmuHawk
+ 			initialConfig.ResolveDefaults();
+ 			if (initialConfig.SaveSlot is 0) initialConfig.SaveSlot = 10; //TODO remove after a while
+ 			// initialConfig should really be globalConfig as it's mutable
++			Console.WriteLine($"After config init {ConfigService.GlobalStopwatch.Elapsed}");
+ 
+ 			StringLogUtil.DefaultToDisk = initialConfig.Movies.MoviesOnDisk;
+ 
+@@ -276,6 +284,8 @@ namespace BizHawk.Client.EmuHawk
+ 
+ 			var workingGL = TryInitIGL(initialConfig.DispMethod);
+ 
++			Console.WriteLine($"After init display method {ConfigService.GlobalStopwatch.Elapsed}...");
++
+ 			Sound globalSound = null;
+ 
+ 			if (!OSTailoredCode.IsUnixHost)
+@@ -311,6 +321,8 @@ namespace BizHawk.Client.EmuHawk
+ 
+ 			FPCtrl.FixFPCtrl();
+ 
++			Console.WriteLine($"After fixing floating point bullshit {ConfigService.GlobalStopwatch.Elapsed}...");
++
+ 			var exitCode = 0;
+ 			try
+ 			{
+@@ -323,6 +335,7 @@ namespace BizHawk.Client.EmuHawk
+ 					args,
+ 					out var movieSession,
+ 					out var exitEarly);
++				Console.WriteLine($"After running Mainform ctor {ConfigService.GlobalStopwatch.Elapsed}...");
+ 				if (exitEarly)
+ 				{
+ 					//TODO also use this for ArgParser failure
+@@ -341,6 +354,7 @@ namespace BizHawk.Client.EmuHawk
+ 					mf.Config = initialConfig;
+ 				};
+ 				mf.Show();
++				Console.WriteLine($"After running MainForm.Show() {ConfigService.GlobalStopwatch.Elapsed}...");
+ 				try
+ 				{
+ 					exitCode = mf.ProgramRunLoop();
+diff --git a/src/MainSlnExecutable.props b/src/MainSlnExecutable.props
+index 0249f6573..e940961cb 100644
+--- a/src/MainSlnExecutable.props
++++ b/src/MainSlnExecutable.props
+@@ -21,7 +21,7 @@
+ 		<OutputType>Exe</OutputType>
+ 	</PropertyGroup>
+ 	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+-		<OutputType>WinExe</OutputType>
++		<OutputType>Exe</OutputType>
+ 	</PropertyGroup>
+ 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+ 		<ItemGroup>
+@@ -29,6 +29,7 @@
+ 			<ExecConfigFilesFromExecProj Include="$(OutputPath)$(TargetFileName).*" /> <!-- include the .exe.config files -->
+ 		</ItemGroup>
+ 		<!-- Surely this can be done in one step, right? FIXME -->
++		<Copy SourceFiles="@(ExecFilesFromExecProj)" DestinationFolder="$(ExecFilesDest)" />
+ 		<Move SourceFiles="@(ExecFilesFromExecProj)" DestinationFiles="@(ExecFilesFromExecProj->Replace('BizHawk.Client.', ''))" />
+ 		<Move SourceFiles="@(ExecFilesFromExecProj->Replace('BizHawk.Client.', ''))" DestinationFolder="$(ExecFilesDest)" />
+ 		<Move SourceFiles="@(ExecConfigFilesFromExecProj)" DestinationFolder="$(ExecFilesDest)" />
