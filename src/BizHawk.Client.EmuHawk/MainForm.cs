@@ -86,29 +86,36 @@ namespace BizHawk.Client.EmuHawk
 			}
 			WindowSizeSubMenu.DropDownItems.AddRange(CreateWindowSizeFactorSubmenus());
 
-			foreach (var (appliesTo, coreNames) in Config.CorePickerUIData)
+			foreach(var (systemId, cores) in CoreInventory.Instance.AllCores.OrderBy(kvp => kvp.Key))
 			{
-				var submenu = new ToolStripMenuItem { Text = string.Join(" | ", appliesTo) };
+				if (cores.Count < 2) continue;
+
+				var coreNames = cores
+					.OrderBy(core => core.Priority)
+					.Select(core => core.Name)
+					.ToList();
+
+				var submenu = new ToolStripMenuItem { Text = systemId };
 				submenu.DropDownItems.AddRange(coreNames.Select(coreName => {
 					var entry = new ToolStripMenuItem { Text = coreName };
 					entry.Click += (_, _) =>
 					{
 						string currentCoreName = Emulator.Attributes().CoreName;
 						if (coreName != currentCoreName && coreNames.Contains(currentCoreName)) FlagNeedsReboot();
-						foreach (string system in appliesTo)
-							Config.PreferredCores[system] = coreName;
+						Config.PreferredCores[systemId] = coreName;
 					};
 					return (ToolStripItem) entry;
 				}).ToArray());
 				submenu.DropDownOpened += (openedSender, _1) =>
 				{
-					_ = Config.PreferredCores.TryGetValue(appliesTo[0], out var preferred);
+					_ = Config.PreferredCores.TryGetValue(systemId, out var preferred);
 					if (!coreNames.Contains(preferred))
 					{
 						// invalid --> default (doing this here rather than when reading config file to allow for hacked-in values, though I'm not sure if that could do anything at the moment --yoshi)
 						var defaultCore = coreNames[0];
-						Console.WriteLine($"setting preferred core for {appliesTo[0]} etc. to {defaultCore} (was {preferred ?? "null"})");
-						Config.PreferredCores[appliesTo[0]] = preferred = defaultCore;
+						Console.WriteLine($"setting preferred core for {systemId} to {defaultCore} (was {preferred ?? "null"})");
+						preferred = defaultCore;
+						Config.PreferredCores[systemId] = preferred;
 					}
 					foreach (ToolStripMenuItem entry in ((ToolStripMenuItem) openedSender).DropDownItems) entry.Checked = entry.Text == preferred;
 				};
