@@ -126,9 +126,9 @@ namespace BizHawk.Bizware.Graphics
 			CreateContext(majorVersion, minorVersion, coreProfile, shareContext: false);
 		}
 
-		public SDL2OpenGLContext(int majorVersion, int minorVersion, bool coreProfile)
+		public SDL2OpenGLContext(int majorVersion, int minorVersion, bool coreProfile, int width=1, int height=1)
 		{
-			_sdlWindow = SDL_CreateWindow(null, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1, 1,
+			_sdlWindow = SDL_CreateWindow(null, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
 				SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_HIDDEN);
 			if (_sdlWindow == IntPtr.Zero)
 			{
