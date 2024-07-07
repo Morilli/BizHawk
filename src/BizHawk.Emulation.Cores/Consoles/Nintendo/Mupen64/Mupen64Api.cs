@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using BizHawk.BizInvoke;
 
 namespace BizHawk.Emulation.Cores.Consoles.Nintendo.Mupen64;
@@ -222,6 +223,12 @@ public abstract class Mupen64Api
 	{
 		fixed (byte* arrayPointer = array)
 			return CoreDoCommand(command, arrayLength, (IntPtr)arrayPointer);
+	}
+	public unsafe m64p_error CoreDoCommand(m64p_command command, int paramInt, string paramString)
+	{
+		byte[] bytes = Encoding.UTF8.GetBytes(paramString);
+		fixed (byte* bytePointer = bytes)
+			return CoreDoCommand(command, paramInt, (IntPtr)bytePointer);
 	}
 
 	[BizImport(CallingConvention.Cdecl, Compatibility = true)]
