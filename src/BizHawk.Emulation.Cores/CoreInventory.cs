@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 
+using BizHawk.Common;
 using BizHawk.Common.CollectionExtensions;
 using BizHawk.Emulation.Common;
 
@@ -14,9 +15,13 @@ namespace BizHawk.Emulation.Cores
 	public class CoreInventory
 	{
 		private readonly Dictionary<string, List<Core>> _systems = new Dictionary<string, List<Core>>();
+		private readonly List<(List<string>, List<string>)> _systemGroups = [ ];
 
 		/// <summary>keys are system IDs; values are core/ctor info for all that system's cores</summary>
 		public IReadOnlyDictionary<string, List<Core>> AllCores => _systems;
+
+		// list of system ids groups; each system id in the group shares the same core choices
+		public IReadOnlyList<(List<string> SystemIds, List<string> CoreNames)> SystemGroups => _systemGroups;
 
 		public readonly IReadOnlyCollection<Core> SystemsFlat;
 
@@ -186,6 +191,22 @@ namespace BizHawk.Emulation.Cores
 						}
 					}
 				}
+			}
+			foreach (var (systemId, cores) in _systems)
+			{
+				bool found = false;
+				foreach (var (systemIds, existingCores) in _systemGroups)
+				{
+					if (existingCores.SequenceEqual(cores.Select(core => core.Name)))
+					{
+						systemIds.Add(systemId);
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+					_systemGroups.Add(([ systemId ], cores.Select(core => core.Name).ToList()));
 			}
 			SystemsFlat = systemsFlat.Values;
 		}
