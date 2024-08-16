@@ -432,29 +432,29 @@ namespace BizHawk.Client.EmuHawk
 
 				if (SpecificValueRadio.Checked)
 				{
-					return (uint)SpecificValueBox.ToRawInt()!.Value;
+					return SpecificValueBox.ToRawUInt();
 				}
 
 				if (SpecificAddressRadio.Checked)
 				{
-					return (uint)SpecificAddressBox.ToRawInt()!.Value;
+					return SpecificAddressBox.ToRawUInt();
 				}
 
 				if (NumberOfChangesRadio.Checked)
 				{
-					return (uint)NumberOfChangesBox.ToRawInt()!.Value;
+					return NumberOfChangesBox.ToRawUInt();
 				}
 
 				if (DifferenceRadio.Checked)
 				{
-					return (uint)DifferenceBox.ToRawInt()!.Value;
+					return DifferenceBox.ToRawUInt();
 				}
 
 				return null;
 			}
 		}
 
-		private uint? DifferentByValue => DifferentByRadio.Checked ? (uint?)DifferentByBox.ToRawInt() : null;
+		private uint? DifferentByValue => DifferentByRadio.Checked ? DifferentByBox.ToRawUInt() : null;
 
 		private ComparisonOperator Operator
 		{
@@ -1455,7 +1455,7 @@ namespace BizHawk.Client.EmuHawk
 				SpecificAddressBox.ResetText();
 			}
 
-			_searches.CompareValue = (uint?)SpecificValueBox.ToRawInt();
+			_searches.CompareValue = SpecificValueBox.ToRawUInt();
 
 			if (Focused)
 			{
@@ -1477,7 +1477,7 @@ namespace BizHawk.Client.EmuHawk
 				SpecificAddressBox.ResetText();
 			}
 
-			_searches.CompareValue = (uint?)SpecificAddressBox.ToRawInt();
+			_searches.CompareValue = SpecificAddressBox.ToRawUInt();
 
 			if (Focused)
 			{
@@ -1499,7 +1499,7 @@ namespace BizHawk.Client.EmuHawk
 				NumberOfChangesBox.ResetText();
 			}
 
-			_searches.CompareValue = (uint?)NumberOfChangesBox.ToRawInt();
+			_searches.CompareValue = NumberOfChangesBox.ToRawUInt();
 
 			if (Focused)
 			{
@@ -1521,7 +1521,7 @@ namespace BizHawk.Client.EmuHawk
 				DifferenceBox.ResetText();
 			}
 
-			_searches.CompareValue = (uint?)DifferenceBox.ToRawInt();
+			_searches.CompareValue = DifferenceBox.ToRawUInt();
 
 			if (Focused)
 			{
@@ -1533,7 +1533,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void CompareToValue_TextChanged(object sender, EventArgs e)
 		{
-			SetCompareValue((uint?)((INumberBox)sender).ToRawInt());
+			SetCompareValue(((INumberBox)sender).ToRawUInt());
 		}
 
 		private void EqualToRadio_Click(object sender, EventArgs e)
@@ -1581,7 +1581,7 @@ namespace BizHawk.Client.EmuHawk
 				DifferentByBox.ResetText();
 			}
 
-			_searches.DifferentBy = (uint?)DifferenceBox.ToRawInt();
+			_searches.DifferentBy = DifferenceBox.ToRawUInt();
 
 			if (Focused)
 			{
@@ -1593,7 +1593,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void DifferentByBox_TextChanged(object sender, EventArgs e)
 		{
-			_searches.DifferentBy = !string.IsNullOrWhiteSpace(DifferentByBox.Text) ? (uint?)DifferentByBox.ToRawInt() : null;
+			_searches.DifferentBy = !string.IsNullOrWhiteSpace(DifferentByBox.Text) ? DifferentByBox.ToRawUInt() : null;
 			WatchListView.Refresh();
 		}
 

@@ -7,7 +7,6 @@ using BizHawk.Common.NumberExtensions;
 using BizHawk.Emulation.Common;
 using static BizHawk.Common.NumberExtensions.NumberExtensions;
 
-// ReSharper disable PossibleInvalidCastExceptionInForeachLoop
 namespace BizHawk.Client.Common.RamSearchEngine
 {
 	public class RamSearchEngine
@@ -484,7 +483,7 @@ namespace BizHawk.Client.Common.RamSearchEngine
 					case ComparisonOperator.DifferentBy:
 						if (DifferentBy is not uint differentBy) throw new InvalidOperationException();
 						return watchList.Where(w =>
-							differentBy == Math.Abs(SignExtendAsNeeded(w.Current) - SignExtendAsNeeded(w.Previous) - compareValue));
+							differentBy == Math.Abs(Math.Abs(SignExtendAsNeeded(w.Current) - SignExtendAsNeeded(w.Previous)) - compareValue));
 				}
 			}
 			var compareValueF = ReinterpretAsF32(compareValue);
