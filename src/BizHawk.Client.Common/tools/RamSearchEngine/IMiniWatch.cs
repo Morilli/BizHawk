@@ -4,7 +4,6 @@ namespace BizHawk.Client.Common.RamSearchEngine
 {
 	/// <summary>
 	/// Represents a Ram address for watching in the <see cref="RamSearchEngine" />
-	/// With the minimal details necessary for searching
 	/// </summary>
 	internal interface IMiniWatch
 	{

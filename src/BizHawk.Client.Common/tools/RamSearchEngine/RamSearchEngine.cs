@@ -190,20 +190,11 @@ namespace BizHawk.Client.Common.RamSearchEngine
 
 		public void SetEndian(bool bigEndian) => _settings.BigEndian = bigEndian;
 
-		/// <exception cref="InvalidOperationException"><see cref="Mode"/> is <see cref="SearchMode.Fast"/> and <paramref name="type"/> is <see cref="PreviousType.LastFrame"/></exception>
-		public void SetPreviousType(PreviousType type)
-		{
-			if (_settings.IsFastMode() && type == PreviousType.LastFrame)
-			{
-				throw new InvalidOperationException();
-			}
-
-			_settings.PreviousType = type;
-		}
+		public void SetPreviousType(PreviousType type) => _settings.PreviousType = type;
 
 		public void SetPreviousToCurrent()
 		{
-			Array.ForEach(_watchList, w => w.SetPreviousToCurrent());
+			Array.ForEach(_watchList, static w => w.SetPreviousToCurrent());
 		}
 
 		public void ClearChangeCounts()
@@ -272,10 +263,7 @@ namespace BizHawk.Client.Common.RamSearchEngine
 					_watchList = _watchList.OrderBy(w => w.Previous, reverse).ToArray();
 					break;
 				case WatchList.ChangesCol:
-					if (!_settings.IsDetailed()) break;
-					_watchList = _watchList
-						.OrderBy(w => w.ChangeCount, reverse)
-						.ToArray();
+					_watchList = _watchList.OrderBy(w => w.ChangeCount, reverse).ToArray();
 					break;
 				case WatchList.Diff:
 					_watchList = _watchList.OrderBy(w => w.Current - w.Previous, reverse).ToArray();
@@ -461,7 +449,6 @@ namespace BizHawk.Client.Common.RamSearchEngine
 
 		private IEnumerable<IMiniWatch> CompareChanges(IEnumerable<IMiniWatch> watchList)
 		{
-			if (!_settings.IsDetailed()) throw new InvalidCastException(); //TODO matches previous behaviour; was this intended to skip processing? --yoshi
 			if (CompareValue is not uint compareValue) throw new InvalidOperationException();
 			switch (Operator)
 			{
