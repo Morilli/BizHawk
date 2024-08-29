@@ -192,6 +192,8 @@ namespace BizHawk.Client.Common.RamSearchEngine
 
 		public void SetPreviousType(PreviousType type) => _settings.PreviousType = type;
 
+		public void SetMode(SearchMode mode) => _settings.Mode = mode;
+
 		public void SetPreviousToCurrent()
 		{
 			Array.ForEach(_watchList, static w => w.SetPreviousToCurrent());
