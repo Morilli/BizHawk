@@ -274,8 +274,6 @@ namespace BizHawk.Client.EmuHawk
 		{
 			if (_searches.Count > 0)
 			{
-				_searches.Update();
-
 				if (_autoSearch)
 				{
 					if (InputPollableCore != null && Settings.AutoSearchTakeLagFramesIntoAccount && InputPollableCore.IsLagFrame)
@@ -284,8 +282,12 @@ namespace BizHawk.Client.EmuHawk
 					}
 					else
 					{
-						DoSearch();
+						DoSearch(isNewFrame: true);
 					}
+				}
+				else if (_settings.IsDetailed())
+				{
+					_searches.Update(isNewFrame: true);
 				}
 
 				_forcePreviewClear = false;
@@ -293,15 +295,14 @@ namespace BizHawk.Client.EmuHawk
 			}
 		}
 
+		// TODO: this seems to be missing some logic from FrameUpdate that probably should exist here
 		private void MinimalUpdate()
 		{
 			if (_searches.Count > 0)
 			{
-				_searches.Update();
-
 				if (_autoSearch)
 				{
-					DoSearch();
+					DoSearch(isNewFrame: true);
 				}
 			}
 		}
@@ -525,14 +526,14 @@ namespace BizHawk.Client.EmuHawk
 			}
 		}
 
-		public void DoSearch()
+		public void DoSearch(bool isNewFrame)
 		{
 			_searches.CompareValue = CompareToValue;
 			_searches.DifferentBy = DifferentByValue;
 			_searches.Operator = Operator;
 			_searches.CompareTo = Compare;
 
-			var removed = _searches.DoSearch();
+			var removed = _searches.DoSearch(isNewFrame);
 			UpdateList();
 			SetRemovedMessage(removed);
 			ToggleSearchDependentToolBarItems();
@@ -1197,7 +1198,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void SearchMenuItem_Click(object sender, EventArgs e)
 		{
-			DoSearch();
+			DoSearch(isNewFrame: false);
 		}
 
 		private void UndoMenuItem_Click(object sender, EventArgs e)

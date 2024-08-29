@@ -325,7 +325,7 @@ namespace BizHawk.Client.EmuHawk
 				// RAM Search
 				case "Do Search":
 					if (!Tools.IsLoaded<RamSearch>()) return false;
-					Tools.RamSearch.DoSearch();
+					Tools.RamSearch.DoSearch(isNewFrame: false);
 					break;
 				case "New Search":
 					if (!Tools.IsLoaded<RamSearch>()) return false;
