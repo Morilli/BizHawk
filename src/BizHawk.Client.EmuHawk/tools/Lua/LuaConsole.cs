@@ -1222,11 +1222,8 @@ namespace BizHawk.Client.EmuHawk
 				return;
 			}
 
-			OutputBox.Invoke(() =>
-			{
-				OutputBox.SelectAll();
-				OutputBox.Refresh();
-			});
+			OutputBox.SelectAll();
+			OutputBox.Refresh();
 		}
 
 		private void CopyContextItem_Click(object sender, EventArgs e)
@@ -1236,11 +1233,8 @@ namespace BizHawk.Client.EmuHawk
 				return;
 			}
 
-			OutputBox.Invoke(() =>
-			{
-				OutputBox.Copy();
-				OutputBox.Refresh();
-			});
+			OutputBox.Copy();
+			OutputBox.Refresh();
 		}
 
 		private void ClearRegisteredFunctionsContextMenuItem_Click(object sender, EventArgs e)
