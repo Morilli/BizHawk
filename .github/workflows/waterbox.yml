@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: check sysconf
+      run: getconf ARG_MAX
     - name: Install clang 18
       run: wget https://apt.llvm.org/llvm.sh;
           chmod u+x llvm.sh;
