@@ -41,6 +41,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8"
+      - if: ${{ matrix.os.prettyname == 'Linux' }}
+        name: Install Lua 5.4
+        run: sudo apt-get install liblua5.3-0; sudo apt-get install liblua5.4-0
 
       - name: Test
         run: dotnet test BizHawk.sln -c Release -p:ContinuousIntegrationBuild=true
