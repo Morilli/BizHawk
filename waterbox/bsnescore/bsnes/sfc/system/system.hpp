@@ -14,7 +14,7 @@ struct System {
   auto runToSaveStrict() -> void;
   auto frameEvent() -> void;
 
-  auto load(Emulator::Interface*) -> bool;
+  auto load(Emulator::Interface*, uint apuFrequency) -> bool;
   auto save() -> void;
   auto unload() -> void;
   auto power(bool reset) -> void;

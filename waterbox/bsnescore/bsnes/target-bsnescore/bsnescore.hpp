@@ -43,6 +43,7 @@ struct Frequencies
     uint32_t HitachiDSP_frequency;
     uint32_t NECDSP_frequency;
     uint32_t SuperFX_frequency;
+    uint32_t APU_frequency;
 };
 
 struct LayerEnables

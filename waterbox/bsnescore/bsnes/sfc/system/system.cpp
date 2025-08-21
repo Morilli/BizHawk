@@ -116,7 +116,7 @@ auto System::frameEvent() -> void {
   Memory::GlobalWriteEnable = false;
 }
 
-auto System::load(Emulator::Interface* interface) -> bool {
+auto System::load(Emulator::Interface* interface, uint apuFrequency) -> bool {
   information = {};
 
   bus.reset();
@@ -141,6 +141,9 @@ auto System::load(Emulator::Interface* interface) -> bool {
       information.apuFrequency = 32000.0 * 768.0;
     }
   }
+
+  fprintf(stderr, "current apu frequency: %g (* 768), changing to %u (* 768)\n", information.apuFrequency / 768, apuFrequency);
+  information.apuFrequency = apuFrequency * 768;
 
   if(cartridge.has.ICD) {
     if(!icd.load()) return false;

@@ -180,6 +180,7 @@ namespace BizHawk.Client.EmuHawk
 				HitachiDSP_frequency = (uint)HitachiDSPFrequencyValue.ToRawInt()!.Value,
 				NECDSP_frequency = (uint)NECDSPFrequencyValue.ToRawInt()!.Value,
 				SuperFX_frequency = (uint)SuperFXFrequencyValue.ToRawInt()!.Value,
+				APU_frequency = (uint)APUFrequencyValue.ToRawInt()!.Value,
 			};
 #pragma warning disable BHI1008
 			init
@@ -188,6 +189,7 @@ namespace BizHawk.Client.EmuHawk
 				HitachiDSPFrequencyValue.SetFromRawInt((int?)value.HitachiDSP_frequency);
 				NECDSPFrequencyValue.SetFromRawInt((int?)value.NECDSP_frequency);
 				SuperFXFrequencyValue.SetFromRawInt((int?)value.SuperFX_frequency);
+				APUFrequencyValue.SetFromRawInt((int?)value.APU_frequency);
 			}
 #pragma warning restore BHI1008
 		}
