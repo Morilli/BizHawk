@@ -239,10 +239,11 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			public uint HitachiDSP_frequency = 20_000_000;
 			public uint NECDSP_frequency = 7_600_000;
 			public uint SuperFX_frequency = 21_440_000;
+			public uint APU_frequency = 32_040;
 
 			public Frequencies()
 			{ }
-		};
+		}
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct LayerEnables

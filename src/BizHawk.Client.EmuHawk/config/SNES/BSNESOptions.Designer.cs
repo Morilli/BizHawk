@@ -75,6 +75,8 @@
 			this.SuperFXFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
 			this.NECDSPFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
 			this.HitachiDSPFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.lblAPUFrequency = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.APUFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
 			this.groupBox1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -478,7 +480,7 @@
 			// 
 			// lblSuperFXFrequency
 			// 
-			this.lblSuperFXFrequency.Location = new System.Drawing.Point(321, 157);
+			this.lblSuperFXFrequency.Location = new System.Drawing.Point(321, 156);
 			this.lblSuperFXFrequency.Name = "lblSuperFXFrequency";
 			this.lblSuperFXFrequency.Text = "SuperFX Frequency";
 			// 
@@ -492,20 +494,20 @@
 			this.ArmDSPFrequencyValue.Nullable = false;
 			this.ArmDSPFrequencyValue.Size = new System.Drawing.Size(128, 20);
 			this.ArmDSPFrequencyValue.TabIndex = 56;
-			this.ArmDSPFrequencyValue.Text = "21440000";
+			this.ArmDSPFrequencyValue.Text = "0";
 			this.ArmDSPFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
 			// 
 			// SuperFXFrequencyValue
 			// 
 			this.SuperFXFrequencyValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
 			this.SuperFXFrequencyValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
-			this.SuperFXFrequencyValue.Location = new System.Drawing.Point(324, 173);
+			this.SuperFXFrequencyValue.Location = new System.Drawing.Point(324, 172);
 			this.SuperFXFrequencyValue.MaxLength = 10;
 			this.SuperFXFrequencyValue.Name = "SuperFXFrequencyValue";
 			this.SuperFXFrequencyValue.Nullable = false;
 			this.SuperFXFrequencyValue.Size = new System.Drawing.Size(128, 20);
 			this.SuperFXFrequencyValue.TabIndex = 57;
-			this.SuperFXFrequencyValue.Text = "21440000";
+			this.SuperFXFrequencyValue.Text = "0";
 			this.SuperFXFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
 			// 
 			// NECDSPFrequencyValue
@@ -518,7 +520,7 @@
 			this.NECDSPFrequencyValue.Nullable = false;
 			this.NECDSPFrequencyValue.Size = new System.Drawing.Size(128, 20);
 			this.NECDSPFrequencyValue.TabIndex = 58;
-			this.NECDSPFrequencyValue.Text = "7600000";
+			this.NECDSPFrequencyValue.Text = "0";
 			this.NECDSPFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
 			// 
 			// HitachiDSPFrequencyValue
@@ -531,8 +533,27 @@
 			this.HitachiDSPFrequencyValue.Nullable = false;
 			this.HitachiDSPFrequencyValue.Size = new System.Drawing.Size(128, 20);
 			this.HitachiDSPFrequencyValue.TabIndex = 59;
-			this.HitachiDSPFrequencyValue.Text = "20000000";
+			this.HitachiDSPFrequencyValue.Text = "0";
 			this.HitachiDSPFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// lblAPUFrequency
+			// 
+			this.lblAPUFrequency.Location = new System.Drawing.Point(321, 202);
+			this.lblAPUFrequency.Name = "lblAPUFrequency";
+			this.lblAPUFrequency.Text = "APU Frequency";
+			// 
+			// APUFrequencyValue
+			// 
+			this.APUFrequencyValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.APUFrequencyValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.APUFrequencyValue.Location = new System.Drawing.Point(324, 218);
+			this.APUFrequencyValue.MaxLength = 10;
+			this.APUFrequencyValue.Name = "APUFrequencyValue";
+			this.APUFrequencyValue.Nullable = false;
+			this.APUFrequencyValue.Size = new System.Drawing.Size(128, 20);
+			this.APUFrequencyValue.TabIndex = 72;
+			this.APUFrequencyValue.Text = "0";
+			this.APUFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
 			// 
 			// BSNESOptions
 			// 
@@ -541,6 +562,8 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
 			this.ClientSize = new System.Drawing.Size(492, 470);
+			this.Controls.Add(this.APUFrequencyValue);
+			this.Controls.Add(this.lblAPUFrequency);
 			this.Controls.Add(this.HitachiDSPFrequencyValue);
 			this.Controls.Add(this.NECDSPFrequencyValue);
 			this.Controls.Add(this.SuperFXFrequencyValue);
@@ -638,5 +661,7 @@
 		private WatchValueBox SuperFXFrequencyValue;
 		private WatchValueBox NECDSPFrequencyValue;
 		private WatchValueBox HitachiDSPFrequencyValue;
+		private WinForms.Controls.LocLabelEx lblAPUFrequency;
+		private WatchValueBox APUFrequencyValue;
 	}
 }

@@ -276,7 +276,7 @@ auto Program::openFileGameBoy(string name, vfs::file::mode mode, bool required) 
 
 auto Program::load(Frequencies* frequencies) -> void {
 	emulator->unload();
-	emulator->load();
+	emulator->load(frequencies->APU_frequency);
 
 	// per-game hack overrides
 	auto title = superFamicom.title;
@@ -330,11 +330,22 @@ auto Program::load(Frequencies* frequencies) -> void {
 	}
 
 	if (frequencies) {
-		fprintf(stderr, "current necdsp frequency: %u, changing to %u\n", necdsp.Frequency, frequencies->NECDSP_frequency);
-		if (cartridge.has.ARMDSP && frequencies->ArmDSP_frequency) armdsp.Frequency = frequencies->ArmDSP_frequency;
-		if (cartridge.has.HitachiDSP && frequencies->HitachiDSP_frequency) hitachidsp.Frequency = frequencies->HitachiDSP_frequency;
-		if (cartridge.has.NECDSP && frequencies->NECDSP_frequency) necdsp.Frequency = frequencies->NECDSP_frequency;
-		if (cartridge.has.SuperFX && frequencies->SuperFX_frequency) superfx.Frequency = frequencies->SuperFX_frequency;
+		if (cartridge.has.ARMDSP && frequencies->ArmDSP_frequency) {
+			fprintf(stderr, "current armdsp frequency: %u, changing to %u\n", armdsp.Frequency, frequencies->ArmDSP_frequency);
+			armdsp.Frequency = frequencies->ArmDSP_frequency;
+		}
+		if (cartridge.has.HitachiDSP && frequencies->HitachiDSP_frequency) {
+			fprintf(stderr, "current hitachidsp frequency: %u, changing to %u\n", hitachidsp.Frequency, frequencies->HitachiDSP_frequency);
+			hitachidsp.Frequency = frequencies->HitachiDSP_frequency;
+		}
+		if (cartridge.has.NECDSP && frequencies->NECDSP_frequency) {
+			fprintf(stderr, "current necdsp frequency: %u, changing to %u\n", necdsp.Frequency, frequencies->NECDSP_frequency);
+			necdsp.Frequency = frequencies->NECDSP_frequency;
+		}
+		if (cartridge.has.SuperFX && frequencies->SuperFX_frequency) {
+			fprintf(stderr, "current superfx frequency: %u, changing to %u\n", superfx.Frequency, frequencies->SuperFX_frequency);
+			superfx.Frequency = frequencies->SuperFX_frequency;
+		}
 	}
 
 	emulator->power();

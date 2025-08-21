@@ -43,7 +43,7 @@ struct Interface : Emulator::Interface {
   auto manifests() -> vector<string> override;
   auto titles() -> vector<string> override;
   auto title() -> string override;
-  auto load() -> bool override;
+  auto load(uint apuFrequency) -> bool override;
   auto save() -> void override;
   auto unload() -> void override;
 

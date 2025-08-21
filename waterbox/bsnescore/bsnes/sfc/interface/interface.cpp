@@ -74,8 +74,8 @@ auto Interface::title() -> string {
   return cartridge.title();
 }
 
-auto Interface::load() -> bool {
-  return system.load(this);
+auto Interface::load(uint apuFrequency) -> bool {
+  return system.load(this, apuFrequency);
 }
 
 auto Interface::save() -> void {
