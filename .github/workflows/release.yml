@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Install .NET 8
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8"
 
       - name: Get BizHawk version
-        run: echo 'BIZHAWK_VERSION=$(grep -Po "MainVersion = \"\K(.*)(?=\")" src/BizHawk.Common/VersionInfo.cs)' >> $GITHUB_ENV
+        run: echo "BIZHAWK_VERSION=$(grep -Po "MainVersion = \\"\K(.*)(?=\\")\" src/BizHawk.Common/VersionInfo.cs)" >> $GITHUB_ENV
 
       - name: Update version info
         run: Dist/UpdateVersionInfoForRelease.sh
