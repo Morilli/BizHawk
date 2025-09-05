@@ -7,7 +7,7 @@ on:
 
 jobs:
   package:
-    name: Build and package output
+    name: Build and package release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,13 +31,13 @@ jobs:
         run: Dist/Package.sh
       - name: Package into .tar.gz
         working-directory: packaged_output
-        run: tar -czf ../BizHawk-${{ env.BIZHAWK_VERSION }}-linux-x64.tar.gz
+        run: tar -czf ../BizHawk-${{ env.BIZHAWK_VERSION }}-linux-x64.tar.gz *
 
       - name: Package (Windows)
         run: Dist/Package.sh windows-x64
       - name: Package into .zip
         working-directory: packaged_output
-        run: zip -r ../BizHawk-${{ env.BIZHAWK_VERSION }}-win-x64.zip
+        run: zip -r ../BizHawk-${{ env.BIZHAWK_VERSION }}-win-x64.zip .
 
       - name: Upload release builds
         uses: actions/upload-artifact@v4
