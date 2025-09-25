@@ -517,6 +517,18 @@ namespace BizHawk.Bizware.Input
 			[Keysym.KP_Page_Up] = DistinctKey.NumPad9,
 			[Keysym.KP_Delete] = DistinctKey.Decimal,
 			[Keysym.KP_Enter] = DistinctKey.NumPadEnter,
+			[Keysym.XF86Tools] = DistinctKey.F13,
+			[Keysym.XF86Launch5] = DistinctKey.F14,
+			[Keysym.XF86Launch6] = DistinctKey.F15,
+			[Keysym.XF86Launch7] = DistinctKey.F16,
+			[Keysym.XF86Launch8] = DistinctKey.F17,
+			[Keysym.XF86Launch9] = DistinctKey.F18,
+			[Keysym.XF86LaunchA] = DistinctKey.F19,
+			[Keysym.XF86LaunchB] = DistinctKey.F20,
+			[Keysym.XF86LaunchC] = DistinctKey.F21,
+			[Keysym.XF86LaunchD] = DistinctKey.F22,
+			[Keysym.XF86LaunchE] = DistinctKey.F23,
+			[Keysym.XF86LaunchF] = DistinctKey.F24,
 		};
 	}
 }
