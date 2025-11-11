@@ -195,7 +195,7 @@ auto System::power(bool reset, uint hCounter, uint vCounter, uint dramRefreshPos
   if(configuration.hacks.entropy == "Low" ) random.entropy(Random::Entropy::Low );
   if(configuration.hacks.entropy == "High") random.entropy(Random::Entropy::High);
 
-  cpu.power(reset, dramRefreshPosition);
+  cpu.power(reset, hCounter, vCounter, dramRefreshPosition);
   smp.power(reset);
   dsp.power(reset);
   ppu.power(reset, hCounter, vCounter);

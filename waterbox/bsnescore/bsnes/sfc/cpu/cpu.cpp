@@ -78,11 +78,11 @@ auto CPU::load() -> bool {
   return true;
 }
 
-auto CPU::power(bool reset, uint dramRefreshPosition) -> void {
+auto CPU::power(bool reset, uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {
   WDC65816::power();
   Thread::create(Enter, system.cpuFrequency());
   coprocessors.reset();
-  PPUcounter::reset();
+  PPUcounter::reset(hCounter, vCounter);
   PPUcounter::scanline = {&CPU::scanline, this};
 
   function<uint8 (uint, uint8)> reader;

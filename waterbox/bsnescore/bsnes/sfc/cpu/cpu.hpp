@@ -11,7 +11,7 @@ struct CPU : Processor::WDC65816, Thread, PPUcounter {
   static auto Enter() -> void;
   auto main() -> void;
   auto load() -> bool;
-  auto power(bool reset, uint dramRefreshPosition) -> void;
+  auto power(bool reset, uint hCounter, uint vCounter, uint dramRefreshPosition) -> void;
 
   //dma.cpp
   inline auto dmaEnable() -> bool;

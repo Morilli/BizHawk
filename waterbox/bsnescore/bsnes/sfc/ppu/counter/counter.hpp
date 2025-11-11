@@ -26,7 +26,7 @@ struct PPUcounter {
   alwaysinline auto vcounter(uint offset) const -> uint;
   alwaysinline auto hcounter(uint offset) const -> uint;
 
-  inline auto reset() -> void;
+  inline auto reset(uint hCounter, uint vCounter) -> void;
   auto serialize(serializer&) -> void;
 
   function<void ()> scanline;

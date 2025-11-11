@@ -75,9 +75,12 @@ auto PPUcounter::hdot() const -> uint {
   }
 }
 
-auto PPUcounter::reset() -> void {
+auto PPUcounter::reset(uint hCounter, uint vCounter) -> void {
   time = {};
   last = {};
+
+  time.hcounter = hCounter;
+  time.vcounter = vCounter;
 
   time.vperiod = last.vperiod = Region::NTSC() ? 262 : 312;
   time.hperiod = last.hperiod = 1364;

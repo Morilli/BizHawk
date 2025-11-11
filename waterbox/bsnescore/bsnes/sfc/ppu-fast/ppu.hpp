@@ -33,7 +33,7 @@ struct PPU : PPUcounter {
   auto scanline() -> void;
   auto refresh() -> void;
   auto load() -> bool;
-  auto power(bool reset) -> void;
+  auto power(bool reset, uint hCounter, uint vCounter) -> void;
 
   //serialization.cpp
   auto serialize(serializer&) -> void;

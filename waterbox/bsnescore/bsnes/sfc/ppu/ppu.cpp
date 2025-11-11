@@ -76,12 +76,12 @@ auto PPU::load() -> bool {
 auto PPU::power(bool reset, uint hCounter, uint vCounter) -> void {
   if(system.fastPPU()) {
     create(PPUfast::Enter, system.cpuFrequency());
-    ppufast.power(reset);
+    ppufast.power(reset, hCounter, vCounter);
     return;
   }
 
   create(Enter, system.cpuFrequency());
-  PPUcounter::reset();
+  PPUcounter::reset(hCounter, vCounter);
   memory::fill<uint16>(output, 512 * 480);
 
   function<uint8 (uint, uint8)> reader{&PPU::readIO, this};

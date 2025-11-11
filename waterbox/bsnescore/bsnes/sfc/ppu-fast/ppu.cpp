@@ -180,8 +180,8 @@ auto PPU::load() -> bool {
   return true;
 }
 
-auto PPU::power(bool reset) -> void {
-  PPUcounter::reset();
+auto PPU::power(bool reset, uint hCounter, uint vCounter) -> void {
+  PPUcounter::reset(hCounter, vCounter);
   memory::fill<uint16>(output, 1024 * 960);
 
   function<uint8 (uint, uint8)> reader{&PPU::readIO, this};
