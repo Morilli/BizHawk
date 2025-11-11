@@ -68,11 +68,11 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 		[BizImport(CallingConvention.Cdecl)]
 		public abstract void snes_init(ref BsnesApi.SnesInitData initData);
 		[BizImport(CallingConvention.Cdecl)]
-		public abstract void snes_power();
+		public abstract void snes_power(uint hCounter, uint vCounter, uint dramRefreshPosition);
 		[BizImport(CallingConvention.Cdecl)]
 		public abstract void snes_term();
 		[BizImport(CallingConvention.Cdecl)]
-		public abstract void snes_reset();
+		public abstract void snes_reset(uint hCounter, uint vCounter, uint dramRefreshPosition);
 		[BizImport(CallingConvention.Cdecl)]
 		public abstract bool snes_run(bool breakOnLatch);
 
@@ -84,7 +84,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 		public abstract int snes_serialized_size();
 
 		[BizImport(CallingConvention.Cdecl)]
-		public abstract void snes_load_cartridge_normal(byte[] romData, int romSize, ref BsnesApi.Frequencies coprocessorFrequencies);
+		public abstract void snes_load_cartridge_normal(byte[] romData, int romSize, ref BsnesApi.Frequencies coprocessorFrequencies, uint hCounter, uint vCounter, uint dramRefreshPosition);
 		[BizImport(CallingConvention.Cdecl)]
 		public abstract void snes_load_cartridge_super_gameboy(byte[] romData, byte[] sgbRomData, int romSize, int sgbRomSize);
 		[BizImport(CallingConvention.Cdecl)]

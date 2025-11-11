@@ -45,6 +45,9 @@ namespace BizHawk.Client.EmuHawk
 				UseRealTime = ss.UseRealTime,
 				InitialTime = ss.InitialTime,
 				CoprocessorFrequencies = ss.CoprocessorFrequencies,
+				HCounter = ss.hCounter,
+				VCounter = ss.vCounter,
+				DramRefreshPosition = ss.dramRefreshPosition,
 				ShowObj1 = s.ShowOBJ_0,
 				ShowObj2 = s.ShowOBJ_1,
 				ShowObj3 = s.ShowOBJ_2,
@@ -79,6 +82,9 @@ namespace BizHawk.Client.EmuHawk
 			ss.SatellaviewCartridge = dlg.SatellaviewCartridge;
 			ss.UseRealTime = dlg.UseRealTime;
 			ss.InitialTime = dlg.InitialTime;
+			ss.hCounter = dlg.HCounter;
+			ss.vCounter = dlg.VCounter;
+			ss.dramRefreshPosition = dlg.DramRefreshPosition;
 			s.ShowOBJ_0 = dlg.ShowObj1;
 			s.ShowOBJ_1 = dlg.ShowObj2;
 			s.ShowOBJ_2 = dlg.ShowObj3;
@@ -192,6 +198,22 @@ namespace BizHawk.Client.EmuHawk
 				APUFrequencyValue.SetFromRawInt((int?)value.APU_frequency);
 			}
 #pragma warning restore BHI1008
+		}
+
+		private uint HCounter
+		{
+			get => (uint) HCounterValue.ToRawInt()!.Value;
+			set => HCounterValue.SetFromRawInt((int?) value);
+		}
+		private uint VCounter
+		{
+			get => (uint) VCounterValue.ToRawInt()!.Value;
+			set => VCounterValue.SetFromRawInt((int?) value);
+		}
+		private uint DramRefreshPosition
+		{
+			get => (uint) DramRefreshPositionValue.ToRawInt()!.Value;
+			set => DramRefreshPositionValue.SetFromRawInt((int?) value);
 		}
 
 		private BsnesApi.REGION_OVERRIDE RegionOverride => (BsnesApi.REGION_OVERRIDE)RegionBox.SelectedIndex;

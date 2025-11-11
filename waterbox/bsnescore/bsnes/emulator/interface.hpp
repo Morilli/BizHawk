@@ -72,8 +72,8 @@ struct Interface {
   virtual auto inputs(uint device) -> vector<Input> { return {}; }
   virtual auto connected(uint port) -> uint { return 0; }
   virtual auto connect(uint port, uint device) -> void {}
-  virtual auto power() -> void {}
-  virtual auto reset() -> void {}
+  virtual auto power(uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {}
+  virtual auto reset(uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {}
   virtual auto run() -> void {}
 
   //time functions

@@ -150,9 +150,9 @@ EXPORT void snes_init(SnesInitData* init_data)
     program->regionOverride = init_data->region_override;
 }
 
-EXPORT void snes_power(void)
+EXPORT void snes_power(uint hCounter, uint vCounter, uint dramRefreshPosition)
 {
-    emulator->power();
+    emulator->power(hCounter, vCounter, dramRefreshPosition);
 }
 
 // unused currently? should it be?
@@ -161,9 +161,9 @@ EXPORT void snes_term(void)
     emulator->unload();
 }
 
-EXPORT void snes_reset(void)
+EXPORT void snes_reset(uint hCounter, uint vCounter, uint dramRefreshPosition)
 {
-    emulator->reset();
+    emulator->reset(hCounter, vCounter, dramRefreshPosition);
 }
 
 // note: run with runahead doesn't work yet, i suspect it's due to the serialize thing breaking (cause of libco)
@@ -200,12 +200,12 @@ EXPORT void snes_unserialize(const uint8_t* data, int size)
 }
 
 EXPORT void snes_load_cartridge_normal(
-  const uint8_t* rom_data, int rom_size, Frequencies* frequencies
+  const uint8_t* rom_data, int rom_size, Frequencies* frequencies, uint hCounter, uint vCounter, uint dramRefreshPosition
 ) {
     program->superFamicom.raw_data.resize(rom_size);
     memcpy(program->superFamicom.raw_data.data(), rom_data, rom_size);
 
-    program->load(frequencies);
+    program->load(frequencies, hCounter, vCounter, dramRefreshPosition);
 }
 
 EXPORT void snes_load_cartridge_super_gameboy(
@@ -217,7 +217,7 @@ EXPORT void snes_load_cartridge_super_gameboy(
     program->gameBoy.program.resize(sgb_rom_size);
     memcpy(program->gameBoy.program.data(), sgb_rom_data, sgb_rom_size);
 
-    program->load();
+    program->load(nullptr, 0, 0, 538);
 }
 
 EXPORT void snes_load_cartridge_bsmemory(
@@ -231,7 +231,7 @@ EXPORT void snes_load_cartridge_bsmemory(
     program->bsMemory.program.resize(bsmemory_rom_size);
     memcpy(program->bsMemory.program.data(), bsmemory_rom_data, bsmemory_rom_size);
 
-    program->load();
+    program->load(nullptr, 0, 0, 538);
 }
 // Note that sufamiturbo (a and b) are never loaded
 // I have no idea what that is but it probably should be supported frontend

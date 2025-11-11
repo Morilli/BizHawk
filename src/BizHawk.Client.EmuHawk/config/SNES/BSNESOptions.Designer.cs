@@ -77,6 +77,12 @@
 			this.HitachiDSPFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
 			this.lblAPUFrequency = new BizHawk.WinForms.Controls.LocLabelEx();
 			this.APUFrequencyValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.lblHCounter = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.HCounterValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.VCounterValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.DramRefreshPositionValue = new BizHawk.Client.EmuHawk.WatchValueBox();
+			this.lblVCounter = new BizHawk.WinForms.Controls.LocLabelEx();
+			this.lblDramRefreshPosition = new BizHawk.WinForms.Controls.LocLabelEx();
 			this.groupBox1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -555,6 +561,63 @@
 			this.APUFrequencyValue.Text = "0";
 			this.APUFrequencyValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
 			// 
+			// lblHCounter
+			// 
+			this.lblHCounter.Location = new System.Drawing.Point(321, 252);
+			this.lblHCounter.Name = "lblHCounter";
+			this.lblHCounter.Text = "PPU initial hCounter";
+			// 
+			// HCounterValue
+			// 
+			this.HCounterValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.HCounterValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.HCounterValue.Location = new System.Drawing.Point(324, 268);
+			this.HCounterValue.MaxLength = 10;
+			this.HCounterValue.Name = "HCounterValue";
+			this.HCounterValue.Nullable = false;
+			this.HCounterValue.Size = new System.Drawing.Size(128, 20);
+			this.HCounterValue.TabIndex = 86;
+			this.HCounterValue.Text = "0";
+			this.HCounterValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// VCounterValue
+			// 
+			this.VCounterValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.VCounterValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.VCounterValue.Location = new System.Drawing.Point(324, 313);
+			this.VCounterValue.MaxLength = 10;
+			this.VCounterValue.Name = "VCounterValue";
+			this.VCounterValue.Nullable = false;
+			this.VCounterValue.Size = new System.Drawing.Size(128, 20);
+			this.VCounterValue.TabIndex = 87;
+			this.VCounterValue.Text = "0";
+			this.VCounterValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// DramRefreshPositionValue
+			// 
+			this.DramRefreshPositionValue.ByteSize = BizHawk.Client.Common.WatchSize.DWord;
+			this.DramRefreshPositionValue.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+			this.DramRefreshPositionValue.Location = new System.Drawing.Point(324, 362);
+			this.DramRefreshPositionValue.MaxLength = 10;
+			this.DramRefreshPositionValue.Name = "DramRefreshPositionValue";
+			this.DramRefreshPositionValue.Nullable = false;
+			this.DramRefreshPositionValue.Size = new System.Drawing.Size(128, 20);
+			this.DramRefreshPositionValue.TabIndex = 88;
+			this.DramRefreshPositionValue.Text = "538";
+			this.DramRefreshPositionValue.Type = BizHawk.Client.Common.WatchDisplayType.Unsigned;
+			// 
+			// lblVCounter
+			// 
+			this.lblVCounter.Location = new System.Drawing.Point(321, 297);
+			this.lblVCounter.Name = "lblVCounter";
+			this.lblVCounter.Text = "PPU initial vCounter";
+			// 
+			// lblDramRefreshPosition
+			// 
+			this.lblDramRefreshPosition.Location = new System.Drawing.Point(321, 346);
+			this.lblDramRefreshPosition.Name = "lblDramRefreshPosition";
+			this.lblDramRefreshPosition.Text = "dram refresh position";
+			// 
 			// BSNESOptions
 			// 
 			this.AcceptButton = this.btnOk;
@@ -562,6 +625,12 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.btnCancel;
 			this.ClientSize = new System.Drawing.Size(492, 470);
+			this.Controls.Add(this.lblDramRefreshPosition);
+			this.Controls.Add(this.lblVCounter);
+			this.Controls.Add(this.DramRefreshPositionValue);
+			this.Controls.Add(this.VCounterValue);
+			this.Controls.Add(this.HCounterValue);
+			this.Controls.Add(this.lblHCounter);
 			this.Controls.Add(this.APUFrequencyValue);
 			this.Controls.Add(this.lblAPUFrequency);
 			this.Controls.Add(this.HitachiDSPFrequencyValue);
@@ -663,5 +732,11 @@
 		private WatchValueBox HitachiDSPFrequencyValue;
 		private WinForms.Controls.LocLabelEx lblAPUFrequency;
 		private WatchValueBox APUFrequencyValue;
+		private WinForms.Controls.LocLabelEx lblHCounter;
+		private WatchValueBox HCounterValue;
+		private WatchValueBox VCounterValue;
+		private WatchValueBox DramRefreshPositionValue;
+		private WinForms.Controls.LocLabelEx lblVCounter;
+		private WinForms.Controls.LocLabelEx lblDramRefreshPosition;
 	}
 }

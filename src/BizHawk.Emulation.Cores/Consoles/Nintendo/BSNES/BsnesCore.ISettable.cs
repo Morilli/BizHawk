@@ -126,6 +126,10 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			public bool UseRealTime { get; set; } = true;
 
 			public DateTime InitialTime { get; set; } = new(2010, 1, 1);
+
+			public uint hCounter { get; set; }
+			public uint vCounter { get; set; }
+			public uint dramRefreshPosition { get; set; } = 538;
 		}
 	}
 }

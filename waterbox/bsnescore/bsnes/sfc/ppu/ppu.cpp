@@ -73,7 +73,7 @@ auto PPU::load() -> bool {
   return true && ppufast.load();
 }
 
-auto PPU::power(bool reset) -> void {
+auto PPU::power(bool reset, uint hCounter, uint vCounter) -> void {
   if(system.fastPPU()) {
     create(PPUfast::Enter, system.cpuFrequency());
     ppufast.power(reset);
@@ -169,10 +169,10 @@ auto PPU::power(bool reset) -> void {
   io.interlace = false;
 
   //$213c  OPHCT
-  io.hcounter = 0;
+  io.hcounter = hCounter;
 
   //$213d  OPVCT
-  io.vcounter = 0;
+  io.vcounter = vCounter;
 
   if (!reset) {
     mosaic.power();

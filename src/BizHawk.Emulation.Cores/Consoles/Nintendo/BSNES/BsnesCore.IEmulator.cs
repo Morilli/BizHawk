@@ -21,13 +21,13 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 				bool resetSignal = controller.IsPressed("Reset");
 				if (resetSignal)
 				{
-					Api.core.snes_reset();
+					Api.core.snes_reset(_syncSettings.hCounter, _syncSettings.vCounter, _syncSettings.dramRefreshPosition);
 				}
 
 				bool powerSignal = controller.IsPressed("Power");
 				if (powerSignal)
 				{
-					Api.core.snes_power();
+					Api.core.snes_power(_syncSettings.hCounter, _syncSettings.vCounter, _syncSettings.dramRefreshPosition);
 				}
 
 				IsLagFrame = true;

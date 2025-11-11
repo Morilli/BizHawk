@@ -31,7 +31,7 @@ struct Program : Emulator::Platform
 	auto execHook(uint address) -> void override;
 	auto time() -> int64 override;
 
-	auto load(Frequencies* frequencies = nullptr) -> void;
+	auto load(Frequencies* frequencies, uint hCounter, uint vCounter, uint dramRefreshPosition) -> void;
 	auto loadSuperFamicom() -> bool;
 	auto loadGameBoy() -> bool;
 	auto loadBSMemory() -> bool;
@@ -274,7 +274,7 @@ auto Program::openFileGameBoy(string name, vfs::file::mode mode, bool required) 
 	return {};
 }
 
-auto Program::load(Frequencies* frequencies) -> void {
+auto Program::load(Frequencies* frequencies, uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {
 	emulator->unload();
 	emulator->load(frequencies->APU_frequency);
 
@@ -348,7 +348,7 @@ auto Program::load(Frequencies* frequencies) -> void {
 		}
 	}
 
-	emulator->power();
+	emulator->power(hCounter, vCounter, dramRefreshPosition);
 	bus.lock();
 }
 

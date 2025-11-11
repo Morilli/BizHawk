@@ -68,12 +68,12 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 
 					if (resetSignal)
 					{
-						_bsnesCore.Api.core.snes_reset();
+						_bsnesCore.Api.core.snes_reset(_bsnesCore.GetSyncSettings().hCounter, _bsnesCore.GetSyncSettings().vCounter, _bsnesCore.GetSyncSettings().dramRefreshPosition);
 					}
 
 					if (powerSignal)
 					{
-						_bsnesCore.Api.core.snes_power();
+						_bsnesCore.Api.core.snes_power(_bsnesCore.GetSyncSettings().hCounter, _bsnesCore.GetSyncSettings().vCounter, _bsnesCore.GetSyncSettings().dramRefreshPosition);
 					}
 				}
 				else

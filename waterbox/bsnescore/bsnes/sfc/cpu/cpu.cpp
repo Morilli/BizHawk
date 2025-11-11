@@ -78,7 +78,7 @@ auto CPU::load() -> bool {
   return true;
 }
 
-auto CPU::power(bool reset) -> void {
+auto CPU::power(bool reset, uint dramRefreshPosition) -> void {
   WDC65816::power();
   Thread::create(Enter, system.cpuFrequency());
   coprocessors.reset();
@@ -126,7 +126,7 @@ auto CPU::power(bool reset) -> void {
   alu = {};
 
   status = {};
-  status.dramRefreshPosition = (version == 1 ? 530 : 538);
+  this->dramRefreshPosition = status.dramRefreshPosition = dramRefreshPosition;;
   status.hdmaSetupPosition = (version == 1 ? 12 + 8 - dmaCounter() : 12 + dmaCounter());
   status.hdmaPosition = 1104;
   status.resetPending = 1;

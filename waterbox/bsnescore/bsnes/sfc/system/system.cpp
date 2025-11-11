@@ -185,7 +185,7 @@ auto System::unload() -> void {
   information.loaded = false;
 }
 
-auto System::power(bool reset) -> void {
+auto System::power(bool reset, uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {
   hacks.fastPPU = configuration.hacks.ppu.fast;
 
   Emulator::audio.reset(interface);
@@ -195,10 +195,10 @@ auto System::power(bool reset) -> void {
   if(configuration.hacks.entropy == "Low" ) random.entropy(Random::Entropy::Low );
   if(configuration.hacks.entropy == "High") random.entropy(Random::Entropy::High);
 
-  cpu.power(reset);
+  cpu.power(reset, dramRefreshPosition);
   smp.power(reset);
   dsp.power(reset);
-  ppu.power(reset);
+  ppu.power(reset, hCounter, vCounter);
 
   if(cartridge.has.ICD) icd.power();
   if(cartridge.has.MCC) mcc.power();

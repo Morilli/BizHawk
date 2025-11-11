@@ -215,12 +215,12 @@ auto Interface::connect(uint port, uint device) -> void {
   if(port == ID::Port::Expansion) expansionPort.connect(settings.expansionPort = device);
 }
 
-auto Interface::power() -> void {
-  system.power(/* reset = */ false);
+auto Interface::power(uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {
+  system.power(/* reset = */ false, hCounter, vCounter, dramRefreshPosition);
 }
 
-auto Interface::reset() -> void {
-  system.power(/* reset = */ true);
+auto Interface::reset(uint hCounter, uint vCounter, uint dramRefreshPosition) -> void {
+  system.power(/* reset = */ true, hCounter, vCounter, dramRefreshPosition);
 }
 
 auto Interface::run() -> void {

@@ -120,7 +120,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.BSNES
 			else
 			{
 				BsnesApi.Frequencies coprocessorFrequencies = _syncSettings.CoprocessorFrequencies;
-				Api.core.snes_load_cartridge_normal(loadParameters.Roms[0].RomData, loadParameters.Roms[0].RomData.Length, ref coprocessorFrequencies);
+				Api.core.snes_load_cartridge_normal(loadParameters.Roms[0].RomData, loadParameters.Roms[0].RomData.Length, ref coprocessorFrequencies, _syncSettings.hCounter, _syncSettings.vCounter, _syncSettings.dramRefreshPosition);
 			}
 
 			using (Api.EnterExit()) this.BoardName = Marshal.PtrToStringAnsi(Api.core.snes_get_board());

@@ -42,7 +42,7 @@ auto System::unserialize(serializer& s) -> bool {
   if(string{version} != Emulator::SerializerVersion) return false;
   if(fastPPU != hacks.fastPPU) return false;
 
-  if(synchronize) power(/* reset = */ false);
+  if(synchronize) power(/* reset = */ false, 0, 0, 538);
   serializeAll(s, synchronize);
   return true;
 }

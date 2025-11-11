@@ -110,7 +110,7 @@ auto CPU::scanline() -> void {
   }
 
   //DRAM refresh occurs once every scanline
-  if(version == 2) status.dramRefreshPosition = 530 + 8 - dmaCounter();
+  status.dramRefreshPosition = dramRefreshPosition - dmaCounter();
   status.dramRefresh = 0;
 
   //HDMA triggers once every visible scanline

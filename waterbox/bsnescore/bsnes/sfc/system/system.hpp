@@ -17,7 +17,7 @@ struct System {
   auto load(Emulator::Interface*, uint apuFrequency) -> bool;
   auto save() -> void;
   auto unload() -> void;
-  auto power(bool reset) -> void;
+  auto power(bool reset, uint hCounter, uint vCounter, uint dramRefreshPosition) -> void;
 
   //serialization.cpp
   auto serialize(bool synchronize) -> serializer;
