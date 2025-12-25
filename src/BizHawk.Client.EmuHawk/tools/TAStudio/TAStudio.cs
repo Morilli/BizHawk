@@ -20,7 +20,7 @@ namespace BizHawk.Client.EmuHawk
 		public static Icon ToolIcon
 			=> Resources.TAStudioIcon;
 
-		public override bool BlocksInputWhenFocused => IsInMenuLoop;
+		public override bool BlocksInputWhenFocused => false;
 
 		public new IMainFormForTools MainForm => base.MainForm;
 
@@ -28,8 +28,6 @@ namespace BizHawk.Client.EmuHawk
 
 		// TODO: UI flow that conveniently allows to start from savestate
 		public ITasMovie CurrentTasMovie => MovieSession.Movie as ITasMovie;
-
-		public bool IsInMenuLoop { get; private set; }
 
 		private readonly List<TasClipboardEntry> _tasClipboard = new List<TasClipboardEntry>();
 		private const string CursorColumnName = "CursorColumn";
@@ -414,18 +412,7 @@ namespace BizHawk.Client.EmuHawk
 					|| c.Name.EndsWithOrdinal("Block")
 					|| c.Name.EndsWithOrdinal("Status"));
 
-			if (Emulator.SystemId is VSystemID.Raw.N64)
-			{
-				var fakeAnalogControls = TasView.AllColumns
-					.Where(c =>
-						c.Name.EndsWithOrdinal("A Up")
-						|| c.Name.EndsWithOrdinal("A Down")
-						|| c.Name.EndsWithOrdinal("A Left")
-						|| c.Name.EndsWithOrdinal("A Right"));
-
-				columnsToHide = columnsToHide.Concat(fakeAnalogControls);
-			}
-			else if (Emulator.SystemId is VSystemID.Raw.Doom)
+			if (Emulator.SystemId is VSystemID.Raw.Doom)
 			{
 				var columns = TasView.AllColumns
 					.Where(c =>
@@ -436,8 +423,10 @@ namespace BizHawk.Client.EmuHawk
 						|| c.Name.Contains("Gamma")
 						|| c.Name.Contains("Mouse")
 						|| c.Name.Contains("Weapon Select ")
-						|| c.Name.Contains("Turn ")
-						|| c.Name.Contains("Strafe")
+						|| c.Name.Contains("Turn Speed ")
+						|| c.Name.Contains("Left")
+						|| c.Name.Contains("Right")
+						|| c.Name.EndsWithOrdinal("Strafe")
 						|| c.Name.EndsWithOrdinal("Run"));
 
 				columnsToHide = columnsToHide.Concat(columns);
@@ -1091,16 +1080,6 @@ namespace BizHawk.Client.EmuHawk
 				CurrentTasMovie.Markers.Move(e.OldCell.RowIndex.Value, e.NewCell.RowIndex.Value);
 				RefreshDialog(); // Marker move might have been rejected so we need to manually refresh.
 			}
-		}
-
-		private void TASMenu_MenuActivate(object sender, EventArgs e)
-		{
-			IsInMenuLoop = true;
-		}
-
-		private void TASMenu_MenuDeactivate(object sender, EventArgs e)
-		{
-			IsInMenuLoop = false;
 		}
 
 		// Stupid designer

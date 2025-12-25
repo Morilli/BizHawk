@@ -195,8 +195,7 @@ namespace BizHawk.Client.EmuHawk
 			{
 				color = Palette.AnalogEdit_Col;
 			}
-
-			if (_alternateRowColor.GetValueOrPut(
+			else if (_alternateRowColor.GetValueOrPut(
 				columnName,
 				columnName1 => {
 					var playerNumber = ControllerDefinition.PlayerNumber(columnName1);
@@ -295,9 +294,12 @@ namespace BizHawk.Client.EmuHawk
 				else if (column.Type is ColumnType.Boolean or ColumnType.Axis)
 				{
 					// Display typed float value (string "-" can't be parsed, so CurrentTasMovie.DisplayValue can't return it)
-					if (index == _axisEditRow && columnName == _axisEditColumn)
+					if ((index == _axisEditRow || _extraAxisRows.Contains(index))
+						&& columnName == _axisEditColumn)
 					{
-						text = _axisTypedValue;
+						text = _axisTypedValue.Length == 0
+							? _axisBackupState.ToString()
+							: _axisTypedValue;
 					}
 					else if (index < CurrentTasMovie.InputLogLength)
 					{
@@ -521,6 +523,7 @@ namespace BizHawk.Client.EmuHawk
 						_selectionDragState = TasView.IsRowSelected(frame);
 						return;
 					}
+
 					if (_axisEditColumn != buttonName
 						|| !(_axisEditRow == frame || _extraAxisRows.Contains(frame)))
 					{
@@ -1434,7 +1437,7 @@ namespace BizHawk.Client.EmuHawk
 					changeBy = -1;
 				}
 
-				if (ModifierKeys == Keys.Shift)
+				if (e.Modifiers == Keys.Shift)
 				{
 					changeBy *= 10;
 				}
