@@ -6,6 +6,8 @@ namespace BizHawk.Client.Common
 {
 	public sealed class EmuClientApi : IEmuClientApi
 	{
+		internal const ushort SHOW_FUTURE_MAX_USER_TIMEOUT = 0x7FFF; // arbitrary; see https://github.com/TASEmulators/BizHawk/pull/4598#discussion_r2760712788
+
 		private readonly Config _config;
 
 		private readonly IDialogController _dialogController;
@@ -135,8 +137,6 @@ namespace BizHawk.Client.Common
 		public int GetWindowSize()
 			=> _config.GetWindowScaleFor(Emulator.SystemId);
 
-		public void InvisibleEmulation(bool invisible) => _mainForm.InvisibleEmulation = invisible;
-
 		public bool IsPaused() => _mainForm.EmulatorPaused;
 
 		public bool IsSeeking() => _mainForm.IsSeeking;
@@ -186,13 +186,6 @@ namespace BizHawk.Client.Common
 
 		public int ScreenWidth() => _displayManager.GetPanelNativeSize().Width;
 
-		public void SeekFrame(int frame)
-		{
-			var wasPaused = _mainForm.EmulatorPaused;
-			while (Emulator.Frame != frame) _mainForm.SeekFrameAdvance();
-			if (!wasPaused) _mainForm.UnpauseEmulator();
-		}
-
 		public void SetClientExtraPadding(int left, int top, int right, int bottom)
 		{
 			_displayManager.ClientExtraPadding = (left, top, right, bottom);
@@ -226,6 +219,21 @@ namespace BizHawk.Client.Common
 			{
 				_logCallback("Invalid window size");
 			}
+		}
+
+		public void ShowFuture(ShowFutureCallback/*?*/ preFrameCallback, ushort maxFrames)
+		{
+			if (preFrameCallback is not null)
+			{
+				if (maxFrames is 0) throw new ArgumentOutOfRangeException(paramName: nameof(maxFrames), maxFrames, message: "0 frames is not in the future. Did you mean to disable this by passing (null, 0)?");
+				if (maxFrames > SHOW_FUTURE_MAX_USER_TIMEOUT) throw new ArgumentOutOfRangeException(paramName: nameof(maxFrames), maxFrames, message: $"Invalid number of future frames for timeout; must be in 1..={SHOW_FUTURE_MAX_USER_TIMEOUT}.");
+				_mainForm.MaxFutureFrames = maxFrames;
+			}
+			else
+			{
+				_mainForm.MaxFutureFrames = 0;
+			}
+			_mainForm.PreFutureFrameCallback = preFrameCallback;
 		}
 
 		public void SpeedMode(int percent)

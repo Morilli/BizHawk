@@ -220,7 +220,7 @@ namespace BizHawk.Client.EmuHawk
 
 		private void OpenAdvancedMenuItem_Click(object sender, EventArgs e)
 		{
-			using var oac = new OpenAdvancedChooser(this, Config, CreateCoreComm, Game, RunLibretroCoreChooser);
+			using var oac = new OpenAdvancedChooser(this, Config, CreateCoreComm, RunLibretroCoreChooser);
 			if (this.ShowDialogWithTempMute(oac) == DialogResult.Cancel) return;
 
 			if (oac.Result == AdvancedRomLoaderType.LibretroLaunchNoGame)
@@ -787,7 +787,11 @@ namespace BizHawk.Client.EmuHawk
 
 		private void PathsMenuItem_Click(object sender, EventArgs e)
 		{
-			using var form = new PathConfig(Config.PathEntries, Game.System, newPath => MovieSession.BackupDirectory = newPath);
+			using PathConfig form = new(
+				DialogController,
+				Config.PathEntries,
+				sysID: Game.System,
+				newPath => MovieSession.BackupDirectory = newPath);
 			if (this.ShowDialogWithTempMute(form).IsOk()) AddOnScreenMessage("Path settings saved");
 		}
 

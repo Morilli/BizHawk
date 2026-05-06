@@ -23,6 +23,8 @@ namespace BizHawk.Client.EmuHawk
 		}
 
 		private readonly HashSet<Control> _wantingMouseFocus = new HashSet<Control>();
+		private bool _wantsMouse;
+		private Control/*?*/ _lastControl;
 
 #pragma warning disable CA2211 // public field
 		public static Input Instance;
@@ -174,6 +176,31 @@ namespace BizHawk.Client.EmuHawk
 			}
 		}
 
+		private void EnqueueNewEvents(bool prohibitInput = false)
+		{
+			if (_newEvents.Count != 0)
+			{
+				//WHAT!? WE SHOULD NOT BE SO NAIVELY TOUCHING MAINFORM FROM THE INPUTTHREAD. ITS BUSY RUNNING.
+				AllowInput allowInput = prohibitInput ? AllowInput.None : MainFormInputAllowedCallback();
+
+				foreach (var ie in _newEvents)
+				{
+					if (ie.EventType == InputEventType.Press && ShouldSwallow(allowInput, ie.Source))
+					{
+						EnqueueEvent(new InputEvent() {
+							EventType = ie.EventType,
+							LogicalButton = ie.LogicalButton,
+							Source = HostInputType.Ignored, // no input or hotkey will happen, but special processing such as alt menuing may apply
+						});
+						continue;
+					}
+
+					EnqueueEvent(ie);
+				}
+			}
+			_newEvents.Clear();
+		}
+
 		public KeyValuePair<string, int>[] GetAxisValues()
 		{
 			lock (_axisValues)
@@ -205,8 +232,6 @@ namespace BizHawk.Client.EmuHawk
 				//this block is going to massively modify data structures that the binding method uses, so we have to lock it all
 				lock (this)
 				{
-					_newEvents.Clear();
-
 					//analyze keys
 					foreach (var ke in keyEvents)
 					{
@@ -217,9 +242,28 @@ namespace BizHawk.Client.EmuHawk
 					{
 						//_axisValues.Clear();
 						Adapter.ProcessHostGamepads(HandleButton, HandleAxis);
+					}
+					EnqueueNewEvents();
 
-						// analyze moose
-						if (_wantingMouseFocus.Contains(Form.ActiveForm))
+					// analyze moose
+					Control/*?*/ activeForm = Form.ActiveForm;
+					bool newWantsMouse = _wantingMouseFocus.Contains(activeForm);
+					if (activeForm != _lastControl && !_wantsMouse && newWantsMouse)
+					{
+						// We set our internal state to unpress all mouse buttons, so any pressed buttons can get new events for the newly active form.
+						HandleButton("WMouse L", false, HostInputType.Mouse);
+						HandleButton("WMouse M", false, HostInputType.Mouse);
+						HandleButton("WMouse R", false, HostInputType.Mouse);
+						HandleButton("WMouse 1", false, HostInputType.Mouse);
+						HandleButton("WMouse 2", false, HostInputType.Mouse);
+						EnqueueNewEvents(prohibitInput: !_wantsMouse); // if any unpress event were generated, process them even though they probably do nothing
+					}
+					_lastControl = activeForm;
+					_wantsMouse = newWantsMouse;
+
+					if (_wantsMouse)
+					{
+						lock (_axisValues)
 						{
 							var mousePos = Control.MousePosition;
 							if (_trackDeltas)
@@ -235,44 +279,19 @@ namespace BizHawk.Client.EmuHawk
 							_axisValues["WMouse X"] = mousePos.X;
 							_axisValues["WMouse Y"] = mousePos.Y;
 
-							var mouseBtns = Control.MouseButtons;
-							HandleButton("WMouse L", (mouseBtns & MouseButtons.Left) != 0, HostInputType.Mouse);
-							HandleButton("WMouse M", (mouseBtns & MouseButtons.Middle) != 0, HostInputType.Mouse);
-							HandleButton("WMouse R", (mouseBtns & MouseButtons.Right) != 0, HostInputType.Mouse);
-							HandleButton("WMouse 1", (mouseBtns & MouseButtons.XButton1) != 0, HostInputType.Mouse);
-							HandleButton("WMouse 2", (mouseBtns & MouseButtons.XButton2) != 0, HostInputType.Mouse);
-
 							// raw (relative) mouse input
 							_axisValues["RMouse X"] = mouseDeltaX + _axisValues.GetValueOrDefault("RMouse X");
 							_axisValues["RMouse Y"] = mouseDeltaY + _axisValues.GetValueOrDefault("RMouse Y");
 						}
-						else
-						{
-#if false // don't do this: for now, it will interfere with the virtualpad. don't do something similar for the mouse position either
-							// unpress all buttons
-							HandleButton("WMouse L", false, ClientInputFocus.Mouse);
-							HandleButton("WMouse M", false, ClientInputFocus.Mouse);
-							HandleButton("WMouse R", false, ClientInputFocus.Mouse);
-							HandleButton("WMouse 1", false, ClientInputFocus.Mouse);
-							HandleButton("WMouse 2", false, ClientInputFocus.Mouse);
-#endif
-						}
 					}
 
-					if (_newEvents.Count != 0)
-					{
-						//WHAT!? WE SHOULD NOT BE SO NAIVELY TOUCHING MAINFORM FROM THE INPUTTHREAD. ITS BUSY RUNNING.
-						AllowInput allowInput = MainFormInputAllowedCallback();
-
-						foreach (var ie in _newEvents)
-						{
-							//events are swallowed in some cases:
-							if (ie.EventType == InputEventType.Press && ShouldSwallow(allowInput, ie.Source))
-								continue;
-
-							EnqueueEvent(ie);
-						}
-					}
+					var mouseBtns = Control.MouseButtons;
+					HandleButton("WMouse L", (mouseBtns & MouseButtons.Left) != 0, HostInputType.Mouse);
+					HandleButton("WMouse M", (mouseBtns & MouseButtons.Middle) != 0, HostInputType.Mouse);
+					HandleButton("WMouse R", (mouseBtns & MouseButtons.Right) != 0, HostInputType.Mouse);
+					HandleButton("WMouse 1", (mouseBtns & MouseButtons.XButton1) != 0, HostInputType.Mouse);
+					HandleButton("WMouse 2", (mouseBtns & MouseButtons.XButton2) != 0, HostInputType.Mouse);
+					EnqueueNewEvents(prohibitInput: !_wantsMouse);
 
 					_ignoreEventsNextPoll = false;
 				} //lock(this)

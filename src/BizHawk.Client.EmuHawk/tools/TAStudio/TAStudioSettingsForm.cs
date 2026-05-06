@@ -46,6 +46,18 @@ namespace BizHawk.Client.EmuHawk
 			_axisPatterns = new AutoPatternAxis[_settings.MovieSettings.AxisPatterns.Length];
 			for (int i = 0; i < _boolPatterns.Length; i++) _boolPatterns[i] = _settings.MovieSettings.BoolPatterns[i].Clone();
 			for (int i = 0; i < _axisPatterns.Length; i++) _axisPatterns[i] = _settings.MovieSettings.AxisPatterns[i].Clone();
+
+			// tips
+			const string HowToSetAutoFire = "\nYou can set a column as auto hold/fire by right-clicking on the column header.";
+			toolTip1.SetToolTip(PatternHoldRadioButton, toolTip1.GetToolTip(PatternHoldRadioButton) + HowToSetAutoFire);
+			toolTip1.SetToolTip(PatternAutoFireRadioButton, toolTip1.GetToolTip(PatternAutoFireRadioButton) + HowToSetAutoFire);
+			toolTip1.SetToolTip(PatternCustomRadioButton, toolTip1.GetToolTip(PatternCustomRadioButton) + HowToSetAutoFire);
+
+			const string ScrollMethodPrefix = "When scrolling with \"Follow cursor\", ";
+			toolTip1.SetToolTip(ScrollToViewRadio, ScrollMethodPrefix + toolTip1.GetToolTip(ScrollToViewRadio));
+			toolTip1.SetToolTip(ScrollToTopRadio, ScrollMethodPrefix + toolTip1.GetToolTip(ScrollToTopRadio));
+			toolTip1.SetToolTip(ScrollToBottomRadio, ScrollMethodPrefix + toolTip1.GetToolTip(ScrollToBottomRadio));
+			toolTip1.SetToolTip(ScrollToCenterRadio, ScrollMethodPrefix + toolTip1.GetToolTip(ScrollToCenterRadio));
 		}
 
 		private void TAStudioSettingsForm_Load(object sender, EventArgs e)
@@ -55,9 +67,9 @@ namespace BizHawk.Client.EmuHawk
 			MarkerIconsCheckbox.Checked = _settings.GeneralClientSettings.DenoteMarkersWithIcons;
 			StateColorCheckbox.Checked = _settings.GeneralClientSettings.DenoteStatesWithBGColor;
 			StateIconsCheckbox.Checked = _settings.GeneralClientSettings.DenoteStatesWithIcons;
-			HideLagNum.Value = _settings.MovieSettings.InputRollSettings.LagFramesToHide;
-			HideWasLagCheckbox.Checked = _settings.MovieSettings.InputRollSettings.HideWasLagFrames;
-			RotateCheckbox.Checked = _settings.MovieSettings.InputRollSettings.HorizontalOrientation;
+			HideLagNum.Value = _settings.MovieSettings.LagFramesToHide;
+			HideWasLagCheckbox.Checked = _settings.MovieSettings.HideWasLagFrames;
+			RotateCheckbox.Checked = _settings.MovieSettings.HorizontalOrientation;
 
 			// autosave
 			AutosaveBackupCheckbox.Checked = _settings.GeneralClientSettings.AutosaveAsBackupFile;
@@ -65,17 +77,10 @@ namespace BizHawk.Client.EmuHawk
 			AutosaveIntervalNum.Value = _settings.GeneralClientSettings.AutosaveInterval / 1000;
 			BackupOnSaveCheckbox.Checked = _settings.GeneralClientSettings.BackupPerFileSave;
 
-			// misc
-			BindMarkersCheckbox.Checked = _settings.GeneralClientSettings.BindMarkersToInput;
-			AutopauseCheckbox.Checked = _settings.GeneralClientSettings.AutoPause;
-			BranchDoubleClickCheckbox.Checked = _settings.GeneralClientSettings.LoadBranchOnDoubleClick;
-			OldBranchesCheckbox.Checked = _settings.GeneralClientSettings.OldControlSchemeForBranches;
-			IncludeFrameNumberCheckbox.Checked = _settings.GeneralClientSettings.CopyIncludesFrameNo;
+			// input roll
 			AlwaysScrollCheckbox.Checked =  _settings.GeneralClientSettings.FollowCursorAlwaysScroll;
-			UndoCountNum.Value = _settings.GeneralClientSettings.MaxUndoSteps;
-			RewindNum.Value = _settings.GeneralClientSettings.RewindStep;
-			FastRewindNum.Value = _settings.GeneralClientSettings.RewindStepFast;
-			ScrollSpeedNum.Value = _settings.GeneralClientSettings.ScrollSpeed;
+			EditInvisibleColumnsCheckbox.Checked = _settings.GeneralClientSettings.EditInvisibleColumns;
+			ScrollSyncCheckbox.Checked = _settings.GeneralClientSettings.ScrollSync;
 			RadioButton scrollMethodRadio = _settings.GeneralClientSettings.FollowCursorScrollMethod switch
 			{
 				"near" => ScrollToViewRadio,
@@ -85,6 +90,17 @@ namespace BizHawk.Client.EmuHawk
 				_ => ScrollToViewRadio,
 			};
 			scrollMethodRadio.Checked = true;
+
+			// misc
+			BindMarkersCheckbox.Checked = _settings.GeneralClientSettings.BindMarkersToInput;
+			AutopauseCheckbox.Checked = _settings.GeneralClientSettings.AutoPause;
+			BranchDoubleClickCheckbox.Checked = _settings.GeneralClientSettings.LoadBranchOnDoubleClick;
+			OldBranchesCheckbox.Checked = _settings.GeneralClientSettings.OldControlSchemeForBranches;
+			IncludeFrameNumberCheckbox.Checked = _settings.GeneralClientSettings.CopyIncludesFrameNo;
+			UndoCountNum.Value = _settings.GeneralClientSettings.MaxUndoSteps;
+			RewindNum.Value = _settings.GeneralClientSettings.RewindStep;
+			FastRewindNum.Value = _settings.GeneralClientSettings.RewindStepFast;
+			ScrollSpeedNum.Value = _settings.GeneralClientSettings.ScrollSpeed;
 
 			// patterns
 			foreach (var button in _controllerDef.BoolButtons)
@@ -436,6 +452,21 @@ namespace BizHawk.Client.EmuHawk
 
 		private void ApplyButton_Click(object sender, EventArgs e)
 		{
+			// warn the user of potentailly harmful settings
+			bool wasAlreadyBad = _settings.GeneralClientSettings.BindMarkersToInput && !_settings.GeneralClientSettings.EditInvisibleColumns;
+			bool isBad = BindMarkersCheckbox.Checked && !EditInvisibleColumnsCheckbox.Checked;
+			if (isBad && !wasAlreadyBad)
+			{
+				if (MessageBox.Show(
+					text: "You have enabled 'bind markers to input' and disabled 'allow editing hidden columns'. This combination is not recommended, and may result in your markers being moved in unexpected ways. Continue?",
+					caption: "Warning",
+					buttons: MessageBoxButtons.OKCancel,
+					icon: MessageBoxIcon.Warning) == DialogResult.Cancel)
+				{
+					return;
+				}
+			}
+
 			// stuff we keep copies of
 			_settings.GeneralClientSettings.Palette = _palette;
 			_settings.GeneralClientSettings.TasViewFont = _font;
@@ -449,25 +480,28 @@ namespace BizHawk.Client.EmuHawk
 			_settings.GeneralClientSettings.DenoteMarkersWithIcons = MarkerIconsCheckbox.Checked;
 			_settings.GeneralClientSettings.DenoteStatesWithBGColor = StateColorCheckbox.Checked;
 			_settings.GeneralClientSettings.DenoteStatesWithIcons = StateIconsCheckbox.Checked;
-			_settings.MovieSettings.InputRollSettings.LagFramesToHide = (int)HideLagNum.Value;
-			_settings.MovieSettings.InputRollSettings.HideWasLagFrames = HideWasLagCheckbox.Checked;
-			_settings.MovieSettings.InputRollSettings.HorizontalOrientation = RotateCheckbox.Checked;
+			_settings.MovieSettings.LagFramesToHide = (int)HideLagNum.Value;
+			_settings.MovieSettings.HideWasLagFrames = HideWasLagCheckbox.Checked;
+			_settings.MovieSettings.HorizontalOrientation = RotateCheckbox.Checked;
 
 			_settings.GeneralClientSettings.AutosaveAsBackupFile = AutosaveBackupCheckbox.Checked;
 			_settings.GeneralClientSettings.AutosaveAsBk2 = AutosaveBk2Checkbox.Checked;
 			_settings.GeneralClientSettings.AutosaveInterval = (uint)AutosaveIntervalNum.Value * 1000;
 			_settings.GeneralClientSettings.BackupPerFileSave = BackupOnSaveCheckbox.Checked;
 
+			_settings.GeneralClientSettings.FollowCursorAlwaysScroll = AlwaysScrollCheckbox.Checked;
+			_settings.GeneralClientSettings.ScrollSpeed = (int)ScrollSpeedNum.Value;
+			_settings.GeneralClientSettings.ScrollSync = ScrollSyncCheckbox.Checked;
+			_settings.GeneralClientSettings.EditInvisibleColumns = EditInvisibleColumnsCheckbox.Checked;
+
 			_settings.GeneralClientSettings.BindMarkersToInput = BindMarkersCheckbox.Checked;
 			_settings.GeneralClientSettings.AutoPause = AutopauseCheckbox.Checked;
 			_settings.GeneralClientSettings.LoadBranchOnDoubleClick = BranchDoubleClickCheckbox.Checked;
 			_settings.GeneralClientSettings.OldControlSchemeForBranches = OldBranchesCheckbox.Checked;
 			_settings.GeneralClientSettings.CopyIncludesFrameNo = IncludeFrameNumberCheckbox.Checked;
-			_settings.GeneralClientSettings.FollowCursorAlwaysScroll = AlwaysScrollCheckbox.Checked;
 			_settings.GeneralClientSettings.MaxUndoSteps = (int)UndoCountNum.Value;
 			_settings.GeneralClientSettings.RewindStep = (int)RewindNum.Value;
 			_settings.GeneralClientSettings.RewindStepFast = (int)FastRewindNum.Value;
-			_settings.GeneralClientSettings.ScrollSpeed = (int)ScrollSpeedNum.Value;
 
 			if (ScrollToViewRadio.Checked) _settings.GeneralClientSettings.FollowCursorScrollMethod = "near";
 			else if (ScrollToTopRadio.Checked) _settings.GeneralClientSettings.FollowCursorScrollMethod = "top";
