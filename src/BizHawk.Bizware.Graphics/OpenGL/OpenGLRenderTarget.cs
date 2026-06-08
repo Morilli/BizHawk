@@ -98,5 +98,22 @@ namespace BizHawk.Bizware.Graphics
 		{
 			GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 		}
+
+		public void Read(Span<int> dest)
+		{
+			Bind();
+			GL.ReadPixels(0, 0, (uint)Width, (uint)Height, PixelFormat.Bgra, PixelType.UnsignedByte, dest);
+
+			// flip the image vertically
+			Span<int> tempRow = stackalloc int[Width];
+			for (int i = 0; i < Height / 2; i++)
+			{
+				var row1 = dest.Slice(i * Width, Width);
+				var row2 = dest.Slice((Height - i - 1) * Width, Width);
+				row1.CopyTo(tempRow);
+				row2.CopyTo(row1);
+				tempRow.CopyTo(row2);
+			}
+		}
 	}
 }

@@ -14,7 +14,7 @@ namespace BizHawk.Emulation.Cores.Libretro
 
 		private void FrameAdvancePrep(IController controller)
 		{
-			if (_openGLContext is not null) openGLProvider.ActivateGLContext(_openGLContext);
+			_openGLContext?.MakeContextCurrent();
 			UpdateInput(controller);
 
 			if (controller.IsPressed("Reset"))
@@ -134,7 +134,7 @@ namespace BizHawk.Emulation.Cores.Libretro
 			{
 				bridge.LibretroBridge_HWContextDestroy(cbHandler);
 				fboObject?.Dispose();
-				openGLProvider.ReleaseGLContext(_openGLContext);
+				_openGLContext.Dispose();
 				_openGLContext = null;
 			}
 			if (inited)

@@ -73,12 +73,12 @@ namespace BizHawk.Emulation.Cores.Libretro
 			_host = host;
 		}
 
-		public int GetGLTexture() => (int)_host.fboObject.TextureId;
+		public int GetGLTexture() => (int)_host.fboObject.TexID;
 
 		public int[] GetVideoBuffer()
 		{
 			var videoBuffer = _host.GetVideoBuffer();
-			_host.openGLProvider.ReadFBO(_host.fboObject, BufferWidth, BufferHeight, videoBuffer.AsSpan());
+			_host.fboObject.Read(videoBuffer.AsSpan());
 			return videoBuffer;
 		}
 

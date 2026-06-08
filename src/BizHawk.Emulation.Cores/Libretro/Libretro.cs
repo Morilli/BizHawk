@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using BizHawk.BizInvoke;
+using BizHawk.Bizware.Graphics;
 using BizHawk.Common;
 using BizHawk.Emulation.Common;
 
@@ -74,9 +75,8 @@ namespace BizHawk.Emulation.Cores.Libretro
 			}
 		}
 
-		internal readonly IOpenGLProvider openGLProvider;
-		internal IFboWithTexture fboObject;
-		private object _openGLContext;
+		internal OpenGLFBOWithTexture fboObject;
+		private SDL2OpenGLContext _openGLContext;
 		private bool _depth;
 
 		private readonly LibretroBridge.GetGLProcAddr _getGLProcAddr;
@@ -100,11 +100,9 @@ namespace BizHawk.Emulation.Cores.Libretro
 		{
 			try
 			{
-				openGLProvider = comm.OpenGLProvider;
-
 				cbHandler = bridge.LibretroBridge_CreateCallbackHandler();
 
-				_getGLProcAddr = openGLProvider.GetGLProcAddress;
+				_getGLProcAddr = SDL2OpenGLContext.GetGLProcAddress;
 				_getCurrentFramebuffer = GetCurrentFramebuffer;
 				_initializeHardwareContext = InitializeHardwareContext;
 
@@ -266,7 +264,7 @@ namespace BizHawk.Emulation.Cores.Libretro
 
 			if (_openGLContext is not null)
 			{
-				fboObject = openGLProvider.GetOpenGLFBOWithTexture((int) av_info.geometry.max_width, (int) av_info.geometry.max_height, _depth);
+				fboObject = new OpenGLFBOWithTexture((int) av_info.geometry.max_width, (int) av_info.geometry.max_height, _depth);
 				using (guard.EnterExit())
 					bridge.LibretroBridge_HWContextReset(cbHandler);
 				var videoProvider = new Libretro_IGLTextureProvider(this);
@@ -307,11 +305,13 @@ namespace BizHawk.Emulation.Cores.Libretro
 		{
 			switch (contextType)
 			{
-				case LibretroApi.retro_hw_context_type.OPENGL: _openGLContext = openGLProvider.RequestGLContext(2, 1, false); break;
-				case LibretroApi.retro_hw_context_type.OPENGL_CORE: _openGLContext = openGLProvider.RequestGLContext(major, minor, true); break;
+				case LibretroApi.retro_hw_context_type.OPENGL: _openGLContext = new SDL2OpenGLContext(2, 1, false); break;
+				case LibretroApi.retro_hw_context_type.OPENGL_CORE: _openGLContext = new SDL2OpenGLContext(major, minor, true); break;
 				// case LibretroApi.retro_hw_context_type.VULKAN: openGLContext = _openGLProvider.RequestVulkanContext(); break;
 				default: throw new InvalidOperationException($"Unsupported OpenGL context type requested: {contextType}");
 			}
+
+			_openGLContext.SetVsync(false);
 
 			this._depth = needDepth;
 		}

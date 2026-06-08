@@ -11,6 +11,7 @@
 		<PackageReference Include="Microsoft.CSharp" />
 		<PackageReference Include="Google.FlatBuffers" Private="true" />
 		<Analyzer Include="$(ProjectDir)../../References/BizHawk.SrcGen.SettingsUtil.dll" Private="true" />
+		<ProjectReference Include="..\BizHawk.Bizware.Graphics\BizHawk.Bizware.Graphics.csproj" />
 		<Reference Include="FlatBuffers.GenOutput" HintPath="$(ProjectDir)../../References/FlatBuffers.GenOutput.dll" Private="true" />
 		<Reference Include="Virtu" HintPath="$(ProjectDir)../../References/Virtu.dll" Private="true" />
 		<ProjectReference Include="$(ProjectDir)../BizHawk.Emulation.Common/BizHawk.Emulation.Common.csproj" />
